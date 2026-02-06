@@ -163,10 +163,13 @@ function DoorsAdmin() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
         {doors.map(door => (
           <div key={door.id} className={cardCls}>
+            {door.image && (
+              <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
+                <img src={door.image} alt="" className="w-full h-32 object-contain bg-secondary/20" />
+              </div>
+            )}
             <div className="flex items-center gap-4">
-              {door.image ? (
-                <img src={door.image} alt="" className="w-12 h-16 rounded-lg flex-shrink-0 object-cover" style={{ boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }} />
-              ) : (
+              {!door.image && (
                 <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
                   style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
                   <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.1)' }} />
@@ -240,12 +243,13 @@ function WallsAdmin() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {walls.map(wall => (
           <div key={wall.id} className={cardCls}>
+            {wall.image && (
+              <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
+                <img src={wall.image} alt="" className="w-full h-28 object-cover" />
+              </div>
+            )}
             <div className="flex items-start gap-4">
-              {wall.image ? (
-                <img src={wall.image} alt="" className="w-14 h-14 rounded-lg flex-shrink-0 object-cover shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.25)]" />
-              ) : (
-                <Swatch color={wall.color} size="lg" />
-              )}
+              {!wall.image && <Swatch color={wall.color} size="lg" />}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{wall.name}</p>
                 <p className="text-xs text-muted-foreground/50 mt-0.5 capitalize">{wall.moldingType === 'classic' ? 'Klassik' : wall.moldingType === 'modern' ? 'Zamonaviy' : 'Bezakli'}</p>
@@ -293,12 +297,13 @@ function FloorsAdmin() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {floors.map(floor => (
           <div key={floor.id} className={cardCls}>
+            {floor.image && (
+              <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
+                <img src={floor.image} alt="" className="w-full h-24 object-cover" />
+              </div>
+            )}
             <div className="flex items-start gap-4">
-              {floor.image ? (
-                <img src={floor.image} alt="" className="w-14 h-14 rounded-lg flex-shrink-0 object-cover shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.25)]" />
-              ) : (
-                <Swatch color={floor.color} size="lg" />
-              )}
+              {!floor.image && <Swatch color={floor.color} size="lg" />}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{floor.name}</p>
                 <p className="text-xs text-muted-foreground/50 mt-0.5">{patternLabels[floor.pattern]}</p>
