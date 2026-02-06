@@ -21,7 +21,7 @@ export default function CenterScene() {
   const doorDark = adjustBrightness(doorHex, -12);
 
   return (
-    <div className="flex-1 h-full flex items-end justify-center relative overflow-hidden bg-scene">
+    <div className="absolute inset-0 flex items-end justify-center overflow-hidden bg-scene">
       {/* Wall layer — fixed structural container, image is texture only */}
       <div
         className="absolute inset-0 transition-showroom"

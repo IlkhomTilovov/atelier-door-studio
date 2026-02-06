@@ -9,49 +9,91 @@ export default function LeftPanel() {
   const filteredDoors = doors.filter(d => d.collection === state.activeCollection && d.enabled);
 
   return (
-    <div className="h-full flex flex-col py-6 px-4 bg-panel border-r border-gold" style={{ width: '260px' }}>
-      {/* Logo area */}
+    <div
+      className="glass-panel glass-scrollbar h-full flex flex-col py-6 px-5 rounded-2xl overflow-hidden"
+      style={{ width: '240px' }}
+    >
+      {/* Logo */}
       <div className="mb-8 text-center">
-        <h1 className="font-display text-2xl text-gold tracking-widest">SHOWROOM</h1>
-        <div className="w-16 h-px bg-gold-light mx-auto mt-2 opacity-50" />
+        <h1 className="font-display text-2xl tracking-[0.3em]" style={{ color: 'hsl(40 55% 68%)' }}>
+          SHOWROOM
+        </h1>
+        <div
+          className="w-12 h-px mx-auto mt-3"
+          style={{ background: 'linear-gradient(90deg, transparent, hsl(40 60% 55% / 0.5), transparent)' }}
+        />
       </div>
 
-      {/* Collection tabs */}
-      <div className="space-y-2 mb-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-body mb-3">Kolleksiyalar</p>
-        {collections.map(c => (
-          <button
-            key={c}
-            onClick={() => setCollection(c)}
-            className={`w-full text-left px-4 py-3 rounded-sm font-display text-lg tracking-wide transition-showroom ${
-              state.activeCollection === c
-                ? 'bg-primary/20 text-gold border border-gold-strong shadow-gold-glow'
-                : 'text-foreground/70 hover:text-foreground hover:bg-secondary/50 border border-transparent'
-            }`}
-          >
-            {collectionNames[c]}
-          </button>
-        ))}
+      {/* Collections */}
+      <p
+        className="text-[10px] uppercase tracking-[0.25em] font-body mb-4"
+        style={{ color: 'hsl(40 30% 50%)' }}
+      >
+        Kolleksiyalar
+      </p>
+      <div className="space-y-1.5 mb-6">
+        {collections.map(c => {
+          const active = state.activeCollection === c;
+          return (
+            <button
+              key={c}
+              onClick={() => setCollection(c)}
+              className="w-full text-left px-4 py-3 rounded-xl font-display text-base tracking-wide transition-all duration-500"
+              style={{
+                background: active
+                  ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.15) 0%, hsl(40 45% 50% / 0.05) 100%)'
+                  : 'transparent',
+                color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 60%)',
+                boxShadow: active
+                  ? '0 0 0 1px hsl(40 60% 55% / 0.3), 0 0 20px hsl(40 60% 55% / 0.08)'
+                  : 'none',
+              }}
+            >
+              {collectionNames[c]}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="w-full h-px bg-border my-2" />
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-2">
+        <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
+        <div className="w-1 h-1 rounded-full" style={{ background: 'hsl(40 60% 55% / 0.3)' }} />
+        <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
+      </div>
 
-      {/* Door models */}
-      <div className="flex-1 mt-4 space-y-1 overflow-auto">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-body mb-3">Modellar</p>
-        {filteredDoors.map(door => (
-          <button
-            key={door.id}
-            onClick={() => selectDoor(door.id)}
-            className={`w-full text-left px-4 py-3 rounded-sm font-body text-sm tracking-wide transition-showroom ${
-              state.selectedDoor === door.id
-                ? 'bg-primary/15 text-gold border-l-2 border-gold'
-                : 'text-foreground/60 hover:text-foreground/90 hover:bg-secondary/30 border-l-2 border-transparent'
-            }`}
-          >
-            {door.name}
-          </button>
-        ))}
+      {/* Models */}
+      <p
+        className="text-[10px] uppercase tracking-[0.25em] font-body mt-4 mb-4"
+        style={{ color: 'hsl(40 30% 50%)' }}
+      >
+        Modellar
+      </p>
+      <div className="flex-1 space-y-1 overflow-auto glass-scrollbar">
+        {filteredDoors.map(door => {
+          const active = state.selectedDoor === door.id;
+          return (
+            <button
+              key={door.id}
+              onClick={() => selectDoor(door.id)}
+              className="w-full text-left px-4 py-3 rounded-lg font-body text-sm tracking-wide transition-all duration-500"
+              style={{
+                background: active
+                  ? 'hsl(40 50% 55% / 0.1)'
+                  : 'transparent',
+                color: active ? 'hsl(40 50% 75%)' : 'hsl(40 10% 55%)',
+                borderLeft: active
+                  ? '2px solid hsl(40 60% 55% / 0.6)'
+                  : '2px solid transparent',
+                boxShadow: active
+                  ? '0 0 12px hsl(40 60% 55% / 0.06)'
+                  : 'none',
+              }}
+            >
+              {door.name}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
