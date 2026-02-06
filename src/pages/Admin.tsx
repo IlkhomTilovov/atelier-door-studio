@@ -4,6 +4,7 @@ import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection } from '
 import { collectionNames } from '@/data/showroom-data';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Pencil, X, AlertTriangle } from 'lucide-react';
+import AssetModal, { AssetModalData } from '@/components/admin/AssetModal';
 
 type AdminTab = 'doors' | 'walls' | 'floors';
 
@@ -42,27 +43,6 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
         checked ? 'translate-x-5' : 'translate-x-0'
       }`} />
     </button>
-  );
-}
-
-/* ── Modal Overlay ── */
-function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-xl border border-border/40 rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] animate-scale-in">
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <h3 className="font-display text-xl text-foreground">{title}</h3>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary/50 transition-colors">
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
-        <div className="px-6 pb-6">
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -155,27 +135,17 @@ function DoorsAdmin() {
   const [showColorModal, setShowColorModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type: 'door' | 'color' } | null>(null);
 
-  const [doorName, setDoorName] = useState('');
-  const [doorCollection, setDoorCollection] = useState<DoorCollection>('classic');
-  const [doorMolding, setDoorMolding] = useState<'simple' | 'ornate' | 'minimal'>('simple');
-  const [doorPanels, setDoorPanels] = useState<2 | 3 | 4>(2);
-
-  const [colorName, setColorName] = useState('');
-  const [colorHex, setColorHex] = useState('#C4B8A8');
-
-  const addDoor = () => {
-    if (!doorName.trim()) return;
+  const addDoor = (data: AssetModalData) => {
     setDoors(prev => [...prev, {
-      id: `door-${Date.now()}`, name: doorName.trim(), collection: doorCollection,
-      moldingStyle: doorMolding, panelCount: doorPanels, enabled: true,
+      id: `door-${Date.now()}`, name: data.name, collection: data.collection ?? 'classic',
+      moldingStyle: data.moldingStyle ?? 'simple', panelCount: data.panelCount ?? 2, enabled: true,
     }]);
-    setDoorName(''); setShowDoorModal(false);
+    setShowDoorModal(false);
   };
 
-  const addColor = () => {
-    if (!colorName.trim()) return;
-    setColors(prev => [...prev, { id: `color-${Date.now()}`, name: colorName.trim(), hex: colorHex, enabled: true }]);
-    setColorName(''); setColorHex('#C4B8A8'); setShowColorModal(false);
+  const addColor = (data: AssetModalData) => {
+    setColors(prev => [...prev, { id: `color-${Date.now()}`, name: data.name, hex: data.color, enabled: true }]);
+    setShowColorModal(false);
   };
 
   const handleDelete = () => {
@@ -193,7 +163,6 @@ function DoorsAdmin() {
         {doors.map(door => (
           <div key={door.id} className={cardCls}>
             <div className="flex items-center gap-4">
-              {/* Mini door preview */}
               <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
                 style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
                 <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.1)' }} />
@@ -237,76 +206,13 @@ function DoorsAdmin() {
       </div>
 
       {/* Add Door Modal */}
-      <Modal open={showDoorModal} onClose={() => setShowDoorModal(false)} title="Yangi eshik modeli">
-        <div className="space-y-4 mt-4">
-          <div>
-            <label className={labelCls}>Nomi</label>
-            <input value={doorName} onChange={e => setDoorName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className={labelCls}>Kolleksiya</label>
-              <select value={doorCollection} onChange={e => setDoorCollection(e.target.value as DoorCollection)} className={inputCls}>
-                <option value="classic">Klassik</option>
-                <option value="neo-classic">Neo-Klassik</option>
-                <option value="luxury">Lyuks</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Molding</label>
-              <select value={doorMolding} onChange={e => setDoorMolding(e.target.value as any)} className={inputCls}>
-                <option value="simple">Oddiy</option>
-                <option value="ornate">Bezakli</option>
-                <option value="minimal">Minimal</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Panellar</label>
-              <select value={doorPanels} onChange={e => setDoorPanels(Number(e.target.value) as 2 | 3 | 4)} className={inputCls}>
-                <option value={2}>2</option>
-                <option value={3}>3</option>
-                <option value={4}>4</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setShowDoorModal(false)} className={btnCancel}>Bekor qilish</button>
-            <button onClick={addDoor} className={btnPrimary}>Saqlash</button>
-          </div>
-        </div>
-      </Modal>
+      <AssetModal open={showDoorModal} onClose={() => setShowDoorModal(false)} onSave={addDoor} type="door" title="Yangi eshik modeli" />
 
       {/* Add Color Modal */}
-      <Modal open={showColorModal} onClose={() => setShowColorModal(false)} title="Yangi rang">
-        <div className="space-y-4 mt-4">
-          <div>
-            <label className={labelCls}>Nomi</label>
-            <input value={colorName} onChange={e => setColorName(e.target.value)} placeholder="Masalan: Oltin" className={inputCls} maxLength={30} />
-          </div>
-          <div>
-            <label className={labelCls}>Rang</label>
-            <div className="flex items-center gap-4">
-              <input type="color" value={colorHex} onChange={e => setColorHex(e.target.value)} className="w-14 h-14 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent" />
-              <div className="flex-1">
-                <input value={colorHex} onChange={e => setColorHex(e.target.value)} className={inputCls + " font-mono"} maxLength={7} />
-              </div>
-              <Swatch color={colorHex} size="lg" />
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setShowColorModal(false)} className={btnCancel}>Bekor qilish</button>
-            <button onClick={addColor} className={btnPrimary}>Saqlash</button>
-          </div>
-        </div>
-      </Modal>
+      <AssetModal open={showColorModal} onClose={() => setShowColorModal(false)} onSave={addColor} type="color" title="Yangi rang" />
 
       {/* Delete Confirm */}
-      <DeleteConfirm
-        open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        name={deleteTarget?.name ?? ''}
-      />
+      <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} name={deleteTarget?.name ?? ''} />
     </>
   );
 }
@@ -318,14 +224,9 @@ function WallsAdmin() {
   const [showModal, setShowModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const [name, setName] = useState('');
-  const [color, setColor] = useState('#C4B8A8');
-  const [moldingType, setMoldingType] = useState<'classic' | 'modern' | 'ornate'>('classic');
-
-  const addWall = () => {
-    if (!name.trim()) return;
-    setWalls(prev => [...prev, { id: `wall-${Date.now()}`, name: name.trim(), color, moldingType, enabled: true }]);
-    setName(''); setColor('#C4B8A8'); setShowModal(false);
+  const addWall = (data: AssetModalData) => {
+    setWalls(prev => [...prev, { id: `wall-${Date.now()}`, name: data.name, color: data.color, moldingType: data.moldingType ?? 'classic', enabled: true }]);
+    setShowModal(false);
   };
 
   return (
@@ -357,36 +258,7 @@ function WallsAdmin() {
         ))}
       </div>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Yangi devor uslubi">
-        <div className="space-y-4 mt-4">
-          <div>
-            <label className={labelCls}>Nomi</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Marmar oq" className={inputCls} maxLength={40} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Rang</label>
-              <div className="flex items-center gap-3">
-                <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent" />
-                <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1 font-mono"} maxLength={7} />
-              </div>
-            </div>
-            <div>
-              <label className={labelCls}>Molding turi</label>
-              <select value={moldingType} onChange={e => setMoldingType(e.target.value as any)} className={inputCls}>
-                <option value="classic">Klassik</option>
-                <option value="modern">Zamonaviy</option>
-                <option value="ornate">Bezakli</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setShowModal(false)} className={btnCancel}>Bekor qilish</button>
-            <button onClick={addWall} className={btnPrimary}>Saqlash</button>
-          </div>
-        </div>
-      </Modal>
-
+      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addWall} type="wall" title="Yangi devor uslubi" />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={() => { if (deleteTarget) { setWalls(prev => prev.filter(w => w.id !== deleteTarget.id)); setDeleteTarget(null); } }} name={deleteTarget?.name ?? ''} />
     </>
   );
@@ -399,14 +271,9 @@ function FloorsAdmin() {
   const [showModal, setShowModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const [name, setName] = useState('');
-  const [color, setColor] = useState('#6B6B6B');
-  const [pattern, setPattern] = useState<'marble' | 'wood' | 'tile'>('marble');
-
-  const addFloor = () => {
-    if (!name.trim()) return;
-    setFloors(prev => [...prev, { id: `floor-${Date.now()}`, name: name.trim(), color, pattern, enabled: true }]);
-    setName(''); setColor('#6B6B6B'); setShowModal(false);
+  const addFloor = (data: AssetModalData) => {
+    setFloors(prev => [...prev, { id: `floor-${Date.now()}`, name: data.name, color: data.color, pattern: data.pattern ?? 'marble', enabled: true }]);
+    setShowModal(false);
   };
 
   const patternLabels = { marble: 'Marmar', wood: "Yog'och", tile: 'Plitka' };
@@ -440,36 +307,7 @@ function FloorsAdmin() {
         ))}
       </div>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Yangi pol materiali">
-        <div className="space-y-4 mt-4">
-          <div>
-            <label className={labelCls}>Nomi</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Tik yog'och" className={inputCls} maxLength={40} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Rang</label>
-              <div className="flex items-center gap-3">
-                <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent" />
-                <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1 font-mono"} maxLength={7} />
-              </div>
-            </div>
-            <div>
-              <label className={labelCls}>Naqsh turi</label>
-              <select value={pattern} onChange={e => setPattern(e.target.value as any)} className={inputCls}>
-                <option value="marble">Marmar</option>
-                <option value="wood">Yog'och</option>
-                <option value="tile">Plitka</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end pt-2">
-            <button onClick={() => setShowModal(false)} className={btnCancel}>Bekor qilish</button>
-            <button onClick={addFloor} className={btnPrimary}>Saqlash</button>
-          </div>
-        </div>
-      </Modal>
-
+      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addFloor} type="floor" title="Yangi pol materiali" />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={() => { if (deleteTarget) { setFloors(prev => prev.filter(f => f.id !== deleteTarget.id)); setDeleteTarget(null); } }} name={deleteTarget?.name ?? ''} />
     </>
   );
