@@ -272,15 +272,15 @@ function getFloorTextureSize(
   scale: TextureScale = 'medium',
 ): string {
   const scaleMultipliers: Record<TextureScale, number> = {
-    small: 0.6,
-    medium: 1,
-    large: 1.6,
+    small: 0.4,
+    medium: 0.65,
+    large: 1,
   };
   const m = scaleMultipliers[scale];
 
   // Base sizes simulate real-world tile/plank dimensions (always horizontal)
-  const w = pattern === 'wood' ? 180 * m : 300 * m;
-  const h = pattern === 'wood' ? 1200 * m : 300 * m;
+  const w = pattern === 'wood' ? 120 * m : 200 * m;
+  const h = pattern === 'wood' ? 800 * m : 200 * m;
 
   return `${w}px ${h}px`;
 }
