@@ -14,7 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      door_colors: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          hex: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          hex?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          hex?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      doors: {
+        Row: {
+          collection: string
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          molding_style: string
+          name: string
+          panel_count: number
+          sort_order: number
+        }
+        Insert: {
+          collection?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          molding_style?: string
+          name: string
+          panel_count?: number
+          sort_order?: number
+        }
+        Update: {
+          collection?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          molding_style?: string
+          name?: string
+          panel_count?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      floors: {
+        Row: {
+          color: string
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          name: string
+          pattern: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          pattern?: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          pattern?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      walls: {
+        Row: {
+          color: string
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          molding_type: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          molding_type?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          molding_type?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
