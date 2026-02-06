@@ -117,7 +117,7 @@ export default function CenterScene() {
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
           }}
         />
-        <div className="absolute top-0 left-0 right-0 h-[2px] z-10" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
+        
       </div>
 
       {/* Subtle vignette */}
