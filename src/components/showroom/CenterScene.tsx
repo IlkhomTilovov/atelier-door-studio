@@ -32,7 +32,7 @@ export default function CenterScene() {
             ? {
                 backgroundImage: `url(${wall.image})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                backgroundPosition: 'center bottom',
                 backgroundRepeat: 'no-repeat',
               }
             : {}),
