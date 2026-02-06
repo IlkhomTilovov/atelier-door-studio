@@ -139,6 +139,7 @@ function DoorsAdmin() {
     setDoors(prev => [...prev, {
       id: `door-${Date.now()}`, name: data.name, collection: data.collection ?? 'classic',
       moldingStyle: data.moldingStyle ?? 'simple', panelCount: data.panelCount ?? 2, enabled: true,
+      image: data.image,
     }]);
     setShowDoorModal(false);
   };
@@ -163,10 +164,14 @@ function DoorsAdmin() {
         {doors.map(door => (
           <div key={door.id} className={cardCls}>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
-                style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
-                <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.1)' }} />
-              </div>
+              {door.image ? (
+                <img src={door.image} alt="" className="w-12 h-16 rounded-lg flex-shrink-0 object-cover" style={{ boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }} />
+              ) : (
+                <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
+                  <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.1)' }} />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{door.name}</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">{collectionNames[door.collection]} · {door.panelCount} panel</p>
@@ -225,7 +230,7 @@ function WallsAdmin() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const addWall = (data: AssetModalData) => {
-    setWalls(prev => [...prev, { id: `wall-${Date.now()}`, name: data.name, color: data.color, moldingType: data.moldingType ?? 'classic', enabled: true }]);
+    setWalls(prev => [...prev, { id: `wall-${Date.now()}`, name: data.name, color: data.color, moldingType: data.moldingType ?? 'classic', enabled: true, image: data.image }]);
     setShowModal(false);
   };
 
@@ -236,7 +241,11 @@ function WallsAdmin() {
         {walls.map(wall => (
           <div key={wall.id} className={cardCls}>
             <div className="flex items-start gap-4">
-              <Swatch color={wall.color} size="lg" />
+              {wall.image ? (
+                <img src={wall.image} alt="" className="w-14 h-14 rounded-lg flex-shrink-0 object-cover shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.25)]" />
+              ) : (
+                <Swatch color={wall.color} size="lg" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{wall.name}</p>
                 <p className="text-xs text-muted-foreground/50 mt-0.5 capitalize">{wall.moldingType === 'classic' ? 'Klassik' : wall.moldingType === 'modern' ? 'Zamonaviy' : 'Bezakli'}</p>
@@ -272,7 +281,7 @@ function FloorsAdmin() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const addFloor = (data: AssetModalData) => {
-    setFloors(prev => [...prev, { id: `floor-${Date.now()}`, name: data.name, color: data.color, pattern: data.pattern ?? 'marble', enabled: true }]);
+    setFloors(prev => [...prev, { id: `floor-${Date.now()}`, name: data.name, color: data.color, pattern: data.pattern ?? 'marble', enabled: true, image: data.image }]);
     setShowModal(false);
   };
 
@@ -285,7 +294,11 @@ function FloorsAdmin() {
         {floors.map(floor => (
           <div key={floor.id} className={cardCls}>
             <div className="flex items-start gap-4">
-              <Swatch color={floor.color} size="lg" />
+              {floor.image ? (
+                <img src={floor.image} alt="" className="w-14 h-14 rounded-lg flex-shrink-0 object-cover shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.25)]" />
+              ) : (
+                <Swatch color={floor.color} size="lg" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{floor.name}</p>
                 <p className="text-xs text-muted-foreground/50 mt-0.5">{patternLabels[floor.pattern]}</p>

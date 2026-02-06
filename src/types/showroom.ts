@@ -12,6 +12,7 @@ export interface DoorModel {
   moldingStyle: 'simple' | 'ornate' | 'minimal';
   panelCount: 2 | 3 | 4;
   enabled: boolean;
+  image?: string | null;
 }
 
 export type DoorCollection = 'classic' | 'neo-classic' | 'luxury';
@@ -22,6 +23,7 @@ export interface WallStyle {
   color: string;
   moldingType: 'classic' | 'modern' | 'ornate';
   enabled: boolean;
+  image?: string | null;
 }
 
 export interface FloorMaterial {
@@ -30,6 +32,7 @@ export interface FloorMaterial {
   color: string;
   pattern: 'marble' | 'wood' | 'tile';
   enabled: boolean;
+  image?: string | null;
 }
 
 export interface ShowroomState {

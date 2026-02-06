@@ -49,10 +49,11 @@ export default function RightPanel() {
                   : 'border border-transparent hover:bg-secondary/40 hover:border-border'
               }`}
             >
-              <div
-                className="w-10 h-10 rounded-sm shadow-luxury flex-shrink-0"
-                style={{ backgroundColor: wall.color }}
-              />
+              {wall.image ? (
+                <img src={wall.image} alt="" className="w-10 h-10 rounded-sm object-cover shadow-luxury flex-shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-sm shadow-luxury flex-shrink-0" style={{ backgroundColor: wall.color }} />
+              )}
               <span className="font-body text-sm text-foreground/80">{wall.name}</span>
             </button>
           ))}
@@ -74,10 +75,11 @@ export default function RightPanel() {
                   : 'border border-transparent hover:bg-secondary/40 hover:border-border'
               }`}
             >
-              <div
-                className="w-10 h-10 rounded-sm shadow-luxury flex-shrink-0"
-                style={{ backgroundColor: floor.color }}
-              />
+              {floor.image ? (
+                <img src={floor.image} alt="" className="w-10 h-10 rounded-sm object-cover shadow-luxury flex-shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-sm shadow-luxury flex-shrink-0" style={{ backgroundColor: floor.color }} />
+              )}
               <span className="font-body text-sm text-foreground/80">{floor.name}</span>
             </button>
           ))}
