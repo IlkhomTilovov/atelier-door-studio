@@ -44,13 +44,24 @@ export default function CenterScene() {
       )}
 
 
-      {/* Door layer — image or generated */}
-      <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-20 transition-showroom">
+      {/* Door layer — sized relative to wall, not image */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
+        style={{
+          bottom: '14%',
+          height: '75%',   /* 75% of wall container height */
+          minHeight: '70%',
+          maxHeight: '80%',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+        }}
+      >
         {door?.image ? (
           <img
             src={door.image}
             alt=""
-            className="h-[380px] w-auto object-contain transition-showroom animate-scale-in"
+            className="h-full w-auto object-contain transition-showroom animate-scale-in"
           />
         ) : (
           <DoorComponent
@@ -180,7 +191,7 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
   return (
     <div
       className="relative transition-showroom animate-scale-in"
-      style={{ width: '180px', height: '380px' }}
+      style={{ height: '100%', aspectRatio: '180 / 380' }}
     >
       <div
         className="absolute -inset-3 rounded-sm transition-showroom"
