@@ -1,6 +1,4 @@
 import { useShowroom } from '@/context/ShowroomContext';
-import chandelierImg from '@/assets/chandelier.png';
-import vaseImg from '@/assets/decor-vase.png';
 
 export default function CenterScene() {
   const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor } = useShowroom();
@@ -45,12 +43,6 @@ export default function CenterScene() {
         </>
       )}
 
-      {/* Chandelier */}
-      <img
-        src={chandelierImg}
-        alt=""
-        className="absolute top-2 left-1/2 -translate-x-1/2 w-40 h-auto opacity-60 pointer-events-none z-10"
-      />
 
       {/* Door layer — image or generated */}
       <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-20 transition-showroom">
@@ -71,17 +63,6 @@ export default function CenterScene() {
         )}
       </div>
 
-      {/* Decorative vases */}
-      <img
-        src={vaseImg}
-        alt=""
-        className="absolute bottom-[14%] left-[12%] w-20 h-auto opacity-50 pointer-events-none z-10"
-      />
-      <img
-        src={vaseImg}
-        alt=""
-        className="absolute bottom-[14%] right-[12%] w-20 h-auto opacity-50 pointer-events-none z-10 scale-x-[-1]"
-      />
 
       {/* Floor layer — image or generated */}
       {floor?.image ? (
