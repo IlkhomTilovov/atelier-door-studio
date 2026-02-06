@@ -128,7 +128,7 @@
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .glass-panel {
-    background: hsl(220 20% 12% / 0.65);
+    background: hsl(220 20% 12% / 0.45);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid hsl(var(--gold) / 0.12);
