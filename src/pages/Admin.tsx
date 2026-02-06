@@ -3,62 +3,142 @@ import { useShowroom } from '@/context/ShowroomContext';
 import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection } from '@/types/showroom';
 import { collectionNames } from '@/data/showroom-data';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Eye, EyeOff, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil, X, AlertTriangle } from 'lucide-react';
 
 type AdminTab = 'doors' | 'walls' | 'floors';
 
-/* ── Shared form styles ── */
-const inputCls = "w-full bg-input border border-border rounded-sm px-3 py-2 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold/50 transition-colors";
-const labelCls = "block text-xs uppercase tracking-[0.15em] text-muted-foreground font-body mb-1.5";
-const btnPrimary = "px-5 py-2.5 rounded-sm font-body text-sm tracking-wide bg-primary/20 text-gold border border-gold-strong hover:bg-primary/30 transition-colors";
-const btnCancel = "px-5 py-2.5 rounded-sm font-body text-sm tracking-wide text-muted-foreground border border-border hover:bg-secondary/40 transition-colors";
+/* ── Design tokens ── */
+const cardCls = "group relative bg-card/60 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-card/80 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 border border-border/40";
+const inputCls = "w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-lg px-4 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-200";
+const labelCls = "block text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-2";
+const btnPrimary = "inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-body text-sm tracking-wide bg-gradient-to-r from-gold-dark to-gold text-primary-foreground shadow-[0_4px_16px_rgba(180,160,100,0.2)] hover:shadow-[0_6px_24px_rgba(180,160,100,0.3)] hover:-translate-y-0.5 transition-all duration-300";
+const btnCancel = "px-5 py-2.5 rounded-lg font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-200";
+const iconBtn = "p-2 rounded-lg transition-all duration-200 hover:scale-110";
 
-function FormCard({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+/* ── Status Badge ── */
+function StatusBadge({ active }: { active: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[0.15em] font-body font-medium transition-all duration-300 ${
+      active
+        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+        : 'bg-muted/30 text-muted-foreground/60 border border-border/30'
+    }`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-400' : 'bg-muted-foreground/40'}`} />
+      {active ? 'Faol' : 'Yashirin'}
+    </span>
+  );
+}
+
+/* ── Toggle Switch ── */
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      onClick={onChange}
+      className={`relative w-11 h-6 rounded-full transition-all duration-300 ${
+        checked ? 'bg-gold/80 shadow-[0_0_12px_rgba(180,160,100,0.3)]' : 'bg-muted/50'
+      }`}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-foreground shadow-md transition-all duration-300 ${
+        checked ? 'translate-x-5' : 'translate-x-0'
+      }`} />
+    </button>
+  );
+}
+
+/* ── Modal Overlay ── */
+function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   if (!open) return null;
   return (
-    <div className="bg-card border border-border rounded-sm p-5 mb-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-base text-foreground">{title}</h3>
-        <button onClick={onClose} className="p-1 hover:bg-secondary rounded-sm transition-colors">
-          <X className="w-4 h-4 text-muted-foreground" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-card/95 backdrop-blur-xl border border-border/40 rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] animate-scale-in">
+        <div className="flex items-center justify-between px-6 pt-6 pb-2">
+          <h3 className="font-display text-xl text-foreground">{title}</h3>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+        <div className="px-6 pb-6">
+          {children}
+        </div>
       </div>
-      {children}
     </div>
   );
 }
 
-/* ────────────────────── Main ────────────────────── */
+/* ── Delete Confirm ── */
+function DeleteConfirm({ open, onClose, onConfirm, name }: { open: boolean; onClose: () => void; onConfirm: () => void; name: string }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-card/95 backdrop-blur-xl border border-border/40 rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] animate-scale-in p-6 text-center">
+        <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="w-6 h-6 text-destructive" />
+        </div>
+        <h3 className="font-display text-lg text-foreground mb-2">O'chirishni tasdiqlang</h3>
+        <p className="text-sm text-muted-foreground mb-6">
+          <span className="text-foreground font-medium">"{name}"</span> ni o'chirmoqchimisiz?
+        </p>
+        <div className="flex gap-3 justify-center">
+          <button onClick={onClose} className={btnCancel}>Bekor qilish</button>
+          <button onClick={() => { onConfirm(); onClose(); }} className="px-5 py-2.5 rounded-lg font-body text-sm bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-all duration-200">
+            O'chirish
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Color Swatch ── */
+function Swatch({ color, size = 'md' }: { color: string; size?: 'sm' | 'md' | 'lg' }) {
+  const s = size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-14 h-14' : 'w-10 h-10';
+  return (
+    <div
+      className={`${s} rounded-lg shadow-[inset_0_2px_4px_rgba(255,255,255,0.15),0_2px_8px_rgba(0,0,0,0.25)] flex-shrink-0`}
+      style={{ backgroundColor: color }}
+    />
+  );
+}
+
+/* ═══════════════════════ Main ═══════════════════════ */
 
 export default function Admin() {
   const [tab, setTab] = useState<AdminTab>('doors');
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" />
+      {/* Header */}
+      <header className="px-8 py-5 flex items-center gap-5">
+        <Link to="/" className="flex items-center gap-2 text-muted-foreground/70 hover:text-foreground transition-all duration-200 group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
           <span className="font-body text-sm">Showroom</span>
         </Link>
-        <div className="w-px h-6 bg-border" />
-        <h1 className="font-display text-xl text-gold tracking-wider">Admin Panel</h1>
+        <div className="w-px h-5 bg-border/40" />
+        <h1 className="font-display text-2xl text-gold tracking-wider">Admin Panel</h1>
       </header>
 
-      <div className="border-b border-border px-6 flex gap-1">
+      {/* Tabs */}
+      <div className="px-8 flex gap-6 border-b border-border/30">
         {(['doors', 'walls', 'floors'] as AdminTab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-5 py-3 font-body text-sm tracking-wide border-b-2 transition-colors ${
-              tab === t ? 'border-gold text-gold' : 'border-transparent text-muted-foreground hover:text-foreground'
+            className={`relative px-1 py-4 font-body text-sm tracking-wide transition-all duration-300 ${
+              tab === t ? 'text-gold' : 'text-muted-foreground/60 hover:text-foreground/80'
             }`}
           >
             {t === 'doors' ? 'Eshiklar' : t === 'walls' ? 'Devorlar' : 'Pollar'}
+            {tab === t && (
+              <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold-dark via-gold to-gold-dark rounded-full" />
+            )}
           </button>
         ))}
       </div>
 
-      <div className="p-6 max-w-4xl mx-auto admin-scroll">
+      {/* Content */}
+      <div className="p-8 max-w-5xl mx-auto admin-scroll">
         {tab === 'doors' && <DoorsAdmin />}
         {tab === 'walls' && <WallsAdmin />}
         {tab === 'floors' && <FloorsAdmin />}
@@ -67,67 +147,103 @@ export default function Admin() {
   );
 }
 
-/* ────────────────────── Doors ────────────────────── */
+/* ═══════════════════════ Doors ═══════════════════════ */
 
 function DoorsAdmin() {
   const { doors, setDoors, colors, setColors } = useShowroom();
-  const [showDoorForm, setShowDoorForm] = useState(false);
-  const [showColorForm, setShowColorForm] = useState(false);
+  const [showDoorModal, setShowDoorModal] = useState(false);
+  const [showColorModal, setShowColorModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type: 'door' | 'color' } | null>(null);
 
-  // Door form state
   const [doorName, setDoorName] = useState('');
   const [doorCollection, setDoorCollection] = useState<DoorCollection>('classic');
   const [doorMolding, setDoorMolding] = useState<'simple' | 'ornate' | 'minimal'>('simple');
   const [doorPanels, setDoorPanels] = useState<2 | 3 | 4>(2);
 
-  // Color form state
   const [colorName, setColorName] = useState('');
   const [colorHex, setColorHex] = useState('#C4B8A8');
 
   const addDoor = () => {
     if (!doorName.trim()) return;
-    const id = `door-${Date.now()}`;
-    const newDoor: DoorModel = {
-      id, name: doorName.trim(), collection: doorCollection,
+    setDoors(prev => [...prev, {
+      id: `door-${Date.now()}`, name: doorName.trim(), collection: doorCollection,
       moldingStyle: doorMolding, panelCount: doorPanels, enabled: true,
-    };
-    setDoors(prev => [...prev, newDoor]);
-    setDoorName('');
-    setShowDoorForm(false);
+    }]);
+    setDoorName(''); setShowDoorModal(false);
   };
 
   const addColor = () => {
     if (!colorName.trim()) return;
-    const id = `color-${Date.now()}`;
-    const newColor: DoorColor = { id, name: colorName.trim(), hex: colorHex, enabled: true };
-    setColors(prev => [...prev, newColor]);
-    setColorName('');
-    setColorHex('#C4B8A8');
-    setShowColorForm(false);
+    setColors(prev => [...prev, { id: `color-${Date.now()}`, name: colorName.trim(), hex: colorHex, enabled: true }]);
+    setColorName(''); setColorHex('#C4B8A8'); setShowColorModal(false);
   };
 
-  const toggleDoor = (id: string) => setDoors(prev => prev.map(d => d.id === id ? { ...d, enabled: !d.enabled } : d));
-  const removeDoor = (id: string) => setDoors(prev => prev.filter(d => d.id !== id));
-  const toggleColor = (id: string) => setColors(prev => prev.map(c => c.id === id ? { ...c, enabled: !c.enabled } : c));
-  const removeColor = (id: string) => setColors(prev => prev.filter(c => c.id !== id));
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    if (deleteTarget.type === 'door') setDoors(prev => prev.filter(d => d.id !== deleteTarget.id));
+    else setColors(prev => prev.filter(c => c.id !== deleteTarget.id));
+    setDeleteTarget(null);
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Door models */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg text-foreground">Eshik modellari</h2>
-          <button onClick={() => setShowDoorForm(true)} className={btnPrimary + " flex items-center gap-2"}>
-            <Plus className="w-4 h-4" /> Qo'shish
-          </button>
-        </div>
-
-        <FormCard open={showDoorForm} onClose={() => setShowDoorForm(false)} title="Yangi eshik modeli">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className={labelCls}>Nomi</label>
-              <input value={doorName} onChange={e => setDoorName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} />
+    <>
+      {/* Door Models */}
+      <SectionHeader title="Eshik modellari" count={doors.length} onAdd={() => setShowDoorModal(true)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        {doors.map(door => (
+          <div key={door.id} className={cardCls}>
+            <div className="flex items-center gap-4">
+              {/* Mini door preview */}
+              <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
+                style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
+                <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: colors.find(c => c.enabled)?.hex ?? '#E8E4DE', boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.3), inset -1px -1px 2px rgba(0,0,0,0.1)' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm text-foreground font-medium truncate">{door.name}</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">{collectionNames[door.collection]} · {door.panelCount} panel</p>
+              </div>
+              <StatusBadge active={door.enabled} />
             </div>
+            <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
+              <ToggleSwitch checked={door.enabled} onChange={() => setDoors(prev => prev.map(d => d.id === door.id ? { ...d, enabled: !d.enabled } : d))} />
+              <button className={`${iconBtn} hover:bg-secondary/50 text-muted-foreground/50 hover:text-foreground`}>
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setDeleteTarget({ id: door.id, name: door.name, type: 'door' })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Door Colors */}
+      <SectionHeader title="Eshik ranglari" count={colors.length} onAdd={() => setShowColorModal(true)} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {colors.map(color => (
+          <div key={color.id} className={cardCls + " text-center"}>
+            <Swatch color={color.hex} size="lg" />
+            <p className="font-body text-sm text-foreground mt-3 mb-1">{color.name}</p>
+            <p className="text-[10px] text-muted-foreground/50 font-mono mb-3">{color.hex}</p>
+            <StatusBadge active={color.enabled} />
+            <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-border/20">
+              <ToggleSwitch checked={color.enabled} onChange={() => setColors(prev => prev.map(c => c.id === color.id ? { ...c, enabled: !c.enabled } : c))} />
+              <button onClick={() => setDeleteTarget({ id: color.id, name: color.name, type: 'color' })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add Door Modal */}
+      <Modal open={showDoorModal} onClose={() => setShowDoorModal(false)} title="Yangi eshik modeli">
+        <div className="space-y-4 mt-4">
+          <div>
+            <label className={labelCls}>Nomi</label>
+            <input value={doorName} onChange={e => setDoorName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelCls}>Kolleksiya</label>
               <select value={doorCollection} onChange={e => setDoorCollection(e.target.value as DoorCollection)} className={inputCls}>
@@ -137,7 +253,7 @@ function DoorsAdmin() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Molding uslubi</label>
+              <label className={labelCls}>Molding</label>
               <select value={doorMolding} onChange={e => setDoorMolding(e.target.value as any)} className={inputCls}>
                 <option value="simple">Oddiy</option>
                 <option value="ornate">Bezakli</option>
@@ -145,7 +261,7 @@ function DoorsAdmin() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Panellar soni</label>
+              <label className={labelCls}>Panellar</label>
               <select value={doorPanels} onChange={e => setDoorPanels(Number(e.target.value) as 2 | 3 | 4)} className={inputCls}>
                 <option value={2}>2</option>
                 <option value={3}>3</option>
@@ -153,242 +269,223 @@ function DoorsAdmin() {
               </select>
             </div>
           </div>
-          <div className="flex gap-3 justify-end">
-            <button onClick={() => setShowDoorForm(false)} className={btnCancel}>Bekor qilish</button>
+          <div className="flex gap-3 justify-end pt-2">
+            <button onClick={() => setShowDoorModal(false)} className={btnCancel}>Bekor qilish</button>
             <button onClick={addDoor} className={btnPrimary}>Saqlash</button>
           </div>
-        </FormCard>
-
-        <div className="space-y-2">
-          {doors.map(door => (
-            <div key={door.id} className="flex items-center justify-between bg-card px-4 py-3 rounded-sm border border-border">
-              <div>
-                <span className="font-body text-sm text-foreground">{door.name}</span>
-                <span className="ml-3 text-xs text-muted-foreground">{collectionNames[door.collection]}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => toggleDoor(door.id)} className="p-2 hover:bg-secondary rounded-sm transition-colors">
-                  {door.enabled ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
-                </button>
-                <button onClick={() => removeDoor(door.id)} className="p-2 hover:bg-destructive/20 rounded-sm transition-colors">
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
-      </div>
+      </Modal>
 
-      {/* Door colors */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg text-foreground">Eshik ranglari</h2>
-          <button onClick={() => setShowColorForm(true)} className={btnPrimary + " flex items-center gap-2"}>
-            <Plus className="w-4 h-4" /> Qo'shish
-          </button>
-        </div>
-
-        <FormCard open={showColorForm} onClose={() => setShowColorForm(false)} title="Yangi rang">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className={labelCls}>Nomi</label>
-              <input value={colorName} onChange={e => setColorName(e.target.value)} placeholder="Masalan: Oltin" className={inputCls} maxLength={30} />
-            </div>
-            <div>
-              <label className={labelCls}>Rang</label>
-              <div className="flex items-center gap-3">
-                <input type="color" value={colorHex} onChange={e => setColorHex(e.target.value)} className="w-10 h-10 rounded-sm border border-border cursor-pointer bg-transparent" />
-                <input value={colorHex} onChange={e => setColorHex(e.target.value)} className={inputCls + " flex-1"} maxLength={7} />
+      {/* Add Color Modal */}
+      <Modal open={showColorModal} onClose={() => setShowColorModal(false)} title="Yangi rang">
+        <div className="space-y-4 mt-4">
+          <div>
+            <label className={labelCls}>Nomi</label>
+            <input value={colorName} onChange={e => setColorName(e.target.value)} placeholder="Masalan: Oltin" className={inputCls} maxLength={30} />
+          </div>
+          <div>
+            <label className={labelCls}>Rang</label>
+            <div className="flex items-center gap-4">
+              <input type="color" value={colorHex} onChange={e => setColorHex(e.target.value)} className="w-14 h-14 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent" />
+              <div className="flex-1">
+                <input value={colorHex} onChange={e => setColorHex(e.target.value)} className={inputCls + " font-mono"} maxLength={7} />
               </div>
+              <Swatch color={colorHex} size="lg" />
             </div>
           </div>
-          <div className="flex gap-3 justify-end">
-            <button onClick={() => setShowColorForm(false)} className={btnCancel}>Bekor qilish</button>
+          <div className="flex gap-3 justify-end pt-2">
+            <button onClick={() => setShowColorModal(false)} className={btnCancel}>Bekor qilish</button>
             <button onClick={addColor} className={btnPrimary}>Saqlash</button>
           </div>
-        </FormCard>
-
-        <div className="grid grid-cols-2 gap-2">
-          {colors.map(color => (
-            <div key={color.id} className="flex items-center justify-between bg-card px-4 py-3 rounded-sm border border-border">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-sm border border-border" style={{ backgroundColor: color.hex }} />
-                <span className="font-body text-sm">{color.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => toggleColor(color.id)} className="p-2 hover:bg-secondary rounded-sm transition-colors">
-                  {color.enabled ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
-                </button>
-                <button onClick={() => removeColor(color.id)} className="p-2 hover:bg-destructive/20 rounded-sm transition-colors">
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
-      </div>
-    </div>
+      </Modal>
+
+      {/* Delete Confirm */}
+      <DeleteConfirm
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        name={deleteTarget?.name ?? ''}
+      />
+    </>
   );
 }
 
-/* ────────────────────── Walls ────────────────────── */
+/* ═══════════════════════ Walls ═══════════════════════ */
 
 function WallsAdmin() {
   const { walls, setWalls } = useShowroom();
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
   const [name, setName] = useState('');
   const [color, setColor] = useState('#C4B8A8');
   const [moldingType, setMoldingType] = useState<'classic' | 'modern' | 'ornate'>('classic');
 
   const addWall = () => {
     if (!name.trim()) return;
-    const newWall: WallStyle = {
-      id: `wall-${Date.now()}`, name: name.trim(), color, moldingType, enabled: true,
-    };
-    setWalls(prev => [...prev, newWall]);
-    setName(''); setColor('#C4B8A8');
-    setShowForm(false);
+    setWalls(prev => [...prev, { id: `wall-${Date.now()}`, name: name.trim(), color, moldingType, enabled: true }]);
+    setName(''); setColor('#C4B8A8'); setShowModal(false);
   };
 
-  const toggleWall = (id: string) => setWalls(prev => prev.map(w => w.id === id ? { ...w, enabled: !w.enabled } : w));
-  const removeWall = (id: string) => setWalls(prev => prev.filter(w => w.id !== id));
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-lg text-foreground">Devor uslublari</h2>
-        <button onClick={() => setShowForm(true)} className={btnPrimary + " flex items-center gap-2"}>
-          <Plus className="w-4 h-4" /> Qo'shish
-        </button>
-      </div>
-
-      <FormCard open={showForm} onClose={() => setShowForm(false)} title="Yangi devor uslubi">
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className={labelCls}>Nomi</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Marmar oq" className={inputCls} maxLength={40} />
-          </div>
-          <div>
-            <label className={labelCls}>Rang</label>
-            <div className="flex items-center gap-3">
-              <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-10 h-10 rounded-sm border border-border cursor-pointer bg-transparent" />
-              <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1"} maxLength={7} />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Molding turi</label>
-            <select value={moldingType} onChange={e => setMoldingType(e.target.value as any)} className={inputCls}>
-              <option value="classic">Klassik</option>
-              <option value="modern">Zamonaviy</option>
-              <option value="ornate">Bezakli</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex gap-3 justify-end">
-          <button onClick={() => setShowForm(false)} className={btnCancel}>Bekor qilish</button>
-          <button onClick={addWall} className={btnPrimary}>Saqlash</button>
-        </div>
-      </FormCard>
-
-      <div className="space-y-2">
+    <>
+      <SectionHeader title="Devor uslublari" count={walls.length} onAdd={() => setShowModal(true)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {walls.map(wall => (
-          <div key={wall.id} className="flex items-center justify-between bg-card px-4 py-3 rounded-sm border border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-sm border border-border" style={{ backgroundColor: wall.color }} />
-              <span className="font-body text-sm">{wall.name}</span>
+          <div key={wall.id} className={cardCls}>
+            <div className="flex items-start gap-4">
+              <Swatch color={wall.color} size="lg" />
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm text-foreground font-medium truncate">{wall.name}</p>
+                <p className="text-xs text-muted-foreground/50 mt-0.5 capitalize">{wall.moldingType === 'classic' ? 'Klassik' : wall.moldingType === 'modern' ? 'Zamonaviy' : 'Bezakli'}</p>
+                <div className="mt-2">
+                  <StatusBadge active={wall.enabled} />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => toggleWall(wall.id)} className="p-2 hover:bg-secondary rounded-sm transition-colors">
-                {wall.enabled ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+            <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
+              <ToggleSwitch checked={wall.enabled} onChange={() => setWalls(prev => prev.map(w => w.id === wall.id ? { ...w, enabled: !w.enabled } : w))} />
+              <button className={`${iconBtn} hover:bg-secondary/50 text-muted-foreground/50 hover:text-foreground`}>
+                <Pencil className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => removeWall(wall.id)} className="p-2 hover:bg-destructive/20 rounded-sm transition-colors">
-                <Trash2 className="w-4 h-4 text-destructive" />
+              <button onClick={() => setDeleteTarget({ id: wall.id, name: wall.name })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}>
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         ))}
       </div>
-    </div>
+
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Yangi devor uslubi">
+        <div className="space-y-4 mt-4">
+          <div>
+            <label className={labelCls}>Nomi</label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Marmar oq" className={inputCls} maxLength={40} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Rang</label>
+              <div className="flex items-center gap-3">
+                <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent" />
+                <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1 font-mono"} maxLength={7} />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Molding turi</label>
+              <select value={moldingType} onChange={e => setMoldingType(e.target.value as any)} className={inputCls}>
+                <option value="classic">Klassik</option>
+                <option value="modern">Zamonaviy</option>
+                <option value="ornate">Bezakli</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <button onClick={() => setShowModal(false)} className={btnCancel}>Bekor qilish</button>
+            <button onClick={addWall} className={btnPrimary}>Saqlash</button>
+          </div>
+        </div>
+      </Modal>
+
+      <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={() => { if (deleteTarget) { setWalls(prev => prev.filter(w => w.id !== deleteTarget.id)); setDeleteTarget(null); } }} name={deleteTarget?.name ?? ''} />
+    </>
   );
 }
 
-/* ────────────────────── Floors ────────────────────── */
+/* ═══════════════════════ Floors ═══════════════════════ */
 
 function FloorsAdmin() {
   const { floors, setFloors } = useShowroom();
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
   const [name, setName] = useState('');
   const [color, setColor] = useState('#6B6B6B');
   const [pattern, setPattern] = useState<'marble' | 'wood' | 'tile'>('marble');
 
   const addFloor = () => {
     if (!name.trim()) return;
-    const newFloor: FloorMaterial = {
-      id: `floor-${Date.now()}`, name: name.trim(), color, pattern, enabled: true,
-    };
-    setFloors(prev => [...prev, newFloor]);
-    setName(''); setColor('#6B6B6B');
-    setShowForm(false);
+    setFloors(prev => [...prev, { id: `floor-${Date.now()}`, name: name.trim(), color, pattern, enabled: true }]);
+    setName(''); setColor('#6B6B6B'); setShowModal(false);
   };
 
-  const toggleFloor = (id: string) => setFloors(prev => prev.map(f => f.id === id ? { ...f, enabled: !f.enabled } : f));
-  const removeFloor = (id: string) => setFloors(prev => prev.filter(f => f.id !== id));
+  const patternLabels = { marble: 'Marmar', wood: "Yog'och", tile: 'Plitka' };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-lg text-foreground">Pol materiallari</h2>
-        <button onClick={() => setShowForm(true)} className={btnPrimary + " flex items-center gap-2"}>
-          <Plus className="w-4 h-4" /> Qo'shish
-        </button>
-      </div>
-
-      <FormCard open={showForm} onClose={() => setShowForm(false)} title="Yangi pol materiali">
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className={labelCls}>Nomi</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Tik yog'och" className={inputCls} maxLength={40} />
-          </div>
-          <div>
-            <label className={labelCls}>Rang</label>
-            <div className="flex items-center gap-3">
-              <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-10 h-10 rounded-sm border border-border cursor-pointer bg-transparent" />
-              <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1"} maxLength={7} />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Naqsh turi</label>
-            <select value={pattern} onChange={e => setPattern(e.target.value as any)} className={inputCls}>
-              <option value="marble">Marmar</option>
-              <option value="wood">Yog'och</option>
-              <option value="tile">Plitka</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex gap-3 justify-end">
-          <button onClick={() => setShowForm(false)} className={btnCancel}>Bekor qilish</button>
-          <button onClick={addFloor} className={btnPrimary}>Saqlash</button>
-        </div>
-      </FormCard>
-
-      <div className="space-y-2">
+    <>
+      <SectionHeader title="Pol materiallari" count={floors.length} onAdd={() => setShowModal(true)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {floors.map(floor => (
-          <div key={floor.id} className="flex items-center justify-between bg-card px-4 py-3 rounded-sm border border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-sm border border-border" style={{ backgroundColor: floor.color }} />
-              <span className="font-body text-sm">{floor.name}</span>
+          <div key={floor.id} className={cardCls}>
+            <div className="flex items-start gap-4">
+              <Swatch color={floor.color} size="lg" />
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm text-foreground font-medium truncate">{floor.name}</p>
+                <p className="text-xs text-muted-foreground/50 mt-0.5">{patternLabels[floor.pattern]}</p>
+                <div className="mt-2">
+                  <StatusBadge active={floor.enabled} />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => toggleFloor(floor.id)} className="p-2 hover:bg-secondary rounded-sm transition-colors">
-                {floor.enabled ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+            <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
+              <ToggleSwitch checked={floor.enabled} onChange={() => setFloors(prev => prev.map(f => f.id === floor.id ? { ...f, enabled: !f.enabled } : f))} />
+              <button className={`${iconBtn} hover:bg-secondary/50 text-muted-foreground/50 hover:text-foreground`}>
+                <Pencil className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => removeFloor(floor.id)} className="p-2 hover:bg-destructive/20 rounded-sm transition-colors">
-                <Trash2 className="w-4 h-4 text-destructive" />
+              <button onClick={() => setDeleteTarget({ id: floor.id, name: floor.name })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}>
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Yangi pol materiali">
+        <div className="space-y-4 mt-4">
+          <div>
+            <label className={labelCls}>Nomi</label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Tik yog'och" className={inputCls} maxLength={40} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Rang</label>
+              <div className="flex items-center gap-3">
+                <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent" />
+                <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1 font-mono"} maxLength={7} />
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Naqsh turi</label>
+              <select value={pattern} onChange={e => setPattern(e.target.value as any)} className={inputCls}>
+                <option value="marble">Marmar</option>
+                <option value="wood">Yog'och</option>
+                <option value="tile">Plitka</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <button onClick={() => setShowModal(false)} className={btnCancel}>Bekor qilish</button>
+            <button onClick={addFloor} className={btnPrimary}>Saqlash</button>
+          </div>
+        </div>
+      </Modal>
+
+      <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={() => { if (deleteTarget) { setFloors(prev => prev.filter(f => f.id !== deleteTarget.id)); setDeleteTarget(null); } }} name={deleteTarget?.name ?? ''} />
+    </>
+  );
+}
+
+/* ── Section Header ── */
+function SectionHeader({ title, count, onAdd }: { title: string; count: number; onAdd: () => void }) {
+  return (
+    <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center gap-3">
+        <h2 className="font-display text-xl text-foreground">{title}</h2>
+        <span className="text-xs text-muted-foreground/50 bg-muted/20 px-2.5 py-1 rounded-full font-mono">{count}</span>
+      </div>
+      <button onClick={onAdd} className={btnPrimary}>
+        <Plus className="w-4 h-4" /> Qo'shish
+      </button>
     </div>
   );
 }
