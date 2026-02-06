@@ -53,9 +53,9 @@ export default function CenterScene() {
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
           bottom: '16%',
-          height: '62%',
-          minHeight: '55%',
-          maxHeight: '68%',
+          height: '75%',
+          minHeight: '70%',
+          maxHeight: '82%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
