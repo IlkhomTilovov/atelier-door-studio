@@ -26,7 +26,7 @@ export default function CenterScene() {
       <div
         className="absolute inset-0 transition-showroom"
         style={{
-          bottom: '18%',
+          bottom: '14%',
           backgroundColor: wallColor,
           ...(wall?.image
             ? {
@@ -52,7 +52,7 @@ export default function CenterScene() {
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
-          bottom: '18%',
+          bottom: '14%',
           height: '75%',   /* 75% of wall container height */
           minHeight: '70%',
           maxHeight: '80%',
@@ -83,7 +83,7 @@ export default function CenterScene() {
       <div
         className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
         style={{
-          height: '18%',
+          height: '14%',
           perspective: '400px',
           perspectiveOrigin: 'center top',
         }}
@@ -141,7 +141,7 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
   const pos = side === 'left' ? 'left-[3%]' : 'right-[3%]';
 
   return (
-    <div className={`absolute ${pos} top-[8%] bottom-[22%] w-[18%] z-10 transition-showroom`}>
+    <div className={`absolute ${pos} top-[8%] bottom-[18%] w-[18%] z-10 transition-showroom`}>
       <div
         className="absolute inset-0 rounded-sm transition-showroom"
         style={{
