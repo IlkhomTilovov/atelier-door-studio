@@ -1,4 +1,5 @@
 import { useShowroom } from '@/context/ShowroomContext';
+import { TextureScale, TextureOrientation } from '@/types/showroom';
 
 export default function CenterScene() {
   const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor } = useShowroom();
@@ -78,32 +79,30 @@ export default function CenterScene() {
       </div>
 
 
-      {/* Floor layer — image or generated */}
-      {floor?.image ? (
-        <div className="absolute bottom-0 left-0 right-0 transition-showroom" style={{ height: '14%' }}>
-          <img
-            src={floor.image}
-            alt=""
-            className="w-full h-full object-cover transition-showroom"
-          />
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
-        </div>
-      ) : (
-        <div
-          className="absolute bottom-0 left-0 right-0 transition-showroom"
-          style={{
-            height: '14%',
-            backgroundColor: floorColor,
-            backgroundImage: floor?.pattern === 'marble'
-              ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
-              : floor?.pattern === 'wood'
-              ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
-              : undefined,
-          }}
-        >
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
-        </div>
-      )}
+      {/* Floor layer — UV-tiled texture or generated pattern */}
+      <div
+        className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
+        style={{
+          height: '14%',
+          backgroundColor: floorColor,
+          ...(floor?.image
+            ? {
+                backgroundImage: `url(${floor.image})`,
+                backgroundRepeat: 'repeat',
+                backgroundPosition: 'center',
+                backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, floor.textureOrientation),
+              }
+            : {
+                backgroundImage: floor?.pattern === 'marble'
+                  ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
+                  : floor?.pattern === 'wood'
+                  ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
+                  : undefined,
+              }),
+        }}
+      >
+        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
+      </div>
 
       {/* Subtle vignette */}
       <div className="absolute inset-0 pointer-events-none"
@@ -249,6 +248,34 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
       </div>
     </div>
   );
+}
+
+/** UV-style texture sizing based on material type and scale */
+function getFloorTextureSize(
+  pattern: string,
+  scale: TextureScale = 'medium',
+  orientation: TextureOrientation = 'horizontal'
+): string {
+  const scaleMultipliers: Record<TextureScale, number> = {
+    small: 0.6,
+    medium: 1,
+    large: 1.6,
+  };
+  const m = scaleMultipliers[scale];
+
+  // Base sizes simulate real-world tile/plank dimensions
+  let w: number, h: number;
+  if (pattern === 'wood') {
+    w = 180 * m; h = 1200 * m; // plank proportions
+  } else {
+    w = 300 * m; h = 300 * m; // tile/marble proportions
+  }
+
+  if (orientation === 'vertical') {
+    [w, h] = [h, w];
+  }
+
+  return `${w}px ${h}px`;
 }
 
 function adjustBrightness(hex: string, amount: number): string {

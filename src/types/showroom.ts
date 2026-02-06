@@ -26,6 +26,9 @@ export interface WallStyle {
   image?: string | null;
 }
 
+export type TextureScale = 'small' | 'medium' | 'large';
+export type TextureOrientation = 'horizontal' | 'vertical';
+
 export interface FloorMaterial {
   id: string;
   name: string;
@@ -33,6 +36,8 @@ export interface FloorMaterial {
   pattern: 'marble' | 'wood' | 'tile';
   enabled: boolean;
   image?: string | null;
+  textureScale: TextureScale;
+  textureOrientation: TextureOrientation;
 }
 
 export interface ShowroomState {

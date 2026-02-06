@@ -32,11 +32,11 @@ export const wallStyles: WallStyle[] = [
 ];
 
 export const floorMaterials: FloorMaterial[] = [
-  { id: 'floor-1', name: 'Qora marmar', color: '#2A2A2E', pattern: 'marble', enabled: true },
-  { id: 'floor-2', name: 'Oq marmar', color: '#D8D2C8', pattern: 'marble', enabled: true },
-  { id: 'floor-3', name: 'Eman parket', color: '#8B6B4A', pattern: 'wood', enabled: true },
-  { id: 'floor-4', name: 'Yong\'oq parket', color: '#5C4033', pattern: 'wood', enabled: true },
-  { id: 'floor-5', name: 'Kulrang granit', color: '#6B6B6B', pattern: 'tile', enabled: true },
+  { id: 'floor-1', name: 'Qora marmar', color: '#2A2A2E', pattern: 'marble', enabled: true, textureScale: 'medium', textureOrientation: 'horizontal' },
+  { id: 'floor-2', name: 'Oq marmar', color: '#D8D2C8', pattern: 'marble', enabled: true, textureScale: 'medium', textureOrientation: 'horizontal' },
+  { id: 'floor-3', name: 'Eman parket', color: '#8B6B4A', pattern: 'wood', enabled: true, textureScale: 'medium', textureOrientation: 'horizontal' },
+  { id: 'floor-4', name: 'Yong\'oq parket', color: '#5C4033', pattern: 'wood', enabled: true, textureScale: 'medium', textureOrientation: 'horizontal' },
+  { id: 'floor-5', name: 'Kulrang granit', color: '#6B6B6B', pattern: 'tile', enabled: true, textureScale: 'medium', textureOrientation: 'horizontal' },
 ];
 
 export const collectionNames: Record<DoorCollection, string> = {

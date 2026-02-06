@@ -87,6 +87,8 @@ export type Database = {
           name: string
           pattern: string
           sort_order: number
+          texture_orientation: string
+          texture_scale: string
         }
         Insert: {
           color?: string
@@ -97,6 +99,8 @@ export type Database = {
           name: string
           pattern?: string
           sort_order?: number
+          texture_orientation?: string
+          texture_scale?: string
         }
         Update: {
           color?: string
@@ -107,6 +111,8 @@ export type Database = {
           name?: string
           pattern?: string
           sort_order?: number
+          texture_orientation?: string
+          texture_scale?: string
         }
         Relationships: []
       }
