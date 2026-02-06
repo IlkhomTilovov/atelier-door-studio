@@ -26,12 +26,18 @@ const ShowroomContext = createContext<ShowroomContextType | null>(null);
 export function ShowroomProvider({ children }: { children: ReactNode }) {
   const { doors, colors, walls, floors, loading, refetch } = useShowroomData();
 
-  const [state, setState] = useState<ShowroomState>({
-    selectedDoor: '',
-    selectedDoorColor: '',
-    selectedWall: '',
-    selectedFloor: '',
-    activeCollection: 'classic',
+  const [state, setState] = useState<ShowroomState>(() => {
+    try {
+      const saved = localStorage.getItem('showroom-selection');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      selectedDoor: '',
+      selectedDoorColor: '',
+      selectedWall: '',
+      selectedFloor: '',
+      activeCollection: 'classic',
+    };
   });
 
   // Auto-select first enabled items when data loads
@@ -45,6 +51,13 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
       selectedFloor: s.selectedFloor || floors.find(f => f.enabled)?.id || '',
     }));
   }, [loading, doors, colors, walls, floors]);
+
+  // Persist selection to localStorage
+  React.useEffect(() => {
+    if (state.selectedDoor) {
+      localStorage.setItem('showroom-selection', JSON.stringify(state));
+    }
+  }, [state]);
 
   const selectDoor = (id: string) => setState(s => ({ ...s, selectedDoor: id }));
   const selectDoorColor = (id: string) => setState(s => ({ ...s, selectedDoorColor: id }));
