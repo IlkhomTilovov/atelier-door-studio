@@ -26,7 +26,7 @@ export default function CenterScene() {
       <div
         className="absolute inset-0 transition-showroom"
         style={{
-          bottom: '14%',
+          bottom: '22%',
           backgroundColor: wallColor,
           ...(wall?.image
             ? {
@@ -52,7 +52,7 @@ export default function CenterScene() {
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
-          bottom: '14%',
+          bottom: '22%',
           height: '75%',   /* 75% of wall container height */
           minHeight: '70%',
           maxHeight: '80%',
@@ -83,15 +83,15 @@ export default function CenterScene() {
       <div
         className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
         style={{
-          height: '14%',
-          perspective: '400px',
+          height: '22%',
+          perspective: '600px',
           perspectiveOrigin: 'center top',
         }}
       >
         <div
           className="absolute inset-0 transition-showroom"
           style={{
-            transform: 'rotateX(25deg) scaleY(1.3)',
+            transform: 'rotateX(40deg)',
             transformOrigin: 'center top',
             backgroundColor: floorColor,
             ...(floor?.image
@@ -110,11 +110,11 @@ export default function CenterScene() {
                 }),
           }}
         />
-        {/* Depth gradient overlay — darker near wall, lighter near viewer */}
+        {/* Depth gradient overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 60%)',
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
           }}
         />
         <div className="absolute top-0 left-0 right-0 h-[2px] z-10" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
@@ -141,7 +141,7 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
   const pos = side === 'left' ? 'left-[3%]' : 'right-[3%]';
 
   return (
-    <div className={`absolute ${pos} top-[8%] bottom-[18%] w-[18%] z-10 transition-showroom`}>
+    <div className={`absolute ${pos} top-[8%] bottom-[26%] w-[18%] z-10 transition-showroom`}>
       <div
         className="absolute inset-0 rounded-sm transition-showroom"
         style={{
