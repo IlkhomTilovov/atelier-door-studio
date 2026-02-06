@@ -31,6 +31,8 @@ function mapFloor(row: any): FloorMaterial {
     id: row.id, name: row.name, color: row.color,
     pattern: row.pattern as FloorMaterial['pattern'],
     enabled: row.enabled, image: row.image_url,
+    textureScale: (row.texture_scale ?? 'medium') as FloorMaterial['textureScale'],
+    textureOrientation: (row.texture_orientation ?? 'horizontal') as FloorMaterial['textureOrientation'],
   };
 }
 

@@ -18,6 +18,8 @@ export interface AssetModalData {
   panelCount?: 2 | 3 | 4;
   moldingType?: 'classic' | 'modern' | 'ornate';
   pattern?: 'marble' | 'wood' | 'tile';
+  textureScale?: 'small' | 'medium' | 'large';
+  textureOrientation?: 'horizontal' | 'vertical';
 }
 
 interface AssetModalProps {
@@ -42,6 +44,8 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
   const [panelCount, setPanelCount] = useState<2 | 3 | 4>(2);
   const [moldingType, setMoldingType] = useState<'classic' | 'modern' | 'ornate'>('classic');
   const [pattern, setPattern] = useState<'marble' | 'wood' | 'tile'>('marble');
+  const [textureScale, setTextureScale] = useState<'small' | 'medium' | 'large'>('medium');
+  const [textureOrientation, setTextureOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
 
   useEffect(() => {
     if (open) {
@@ -49,6 +53,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
       setImageFile(null); setImagePreview(null);
       setCollection('classic'); setMoldingStyle('simple'); setPanelCount(2);
       setMoldingType('classic'); setPattern('marble');
+      setTextureScale('medium'); setTextureOrientation('horizontal');
     }
   }, [open, type]);
 
@@ -81,7 +86,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
     const data: AssetModalData = { name: name.trim(), color, imageFile, imagePreview };
     if (type === 'door') { data.collection = collection; data.moldingStyle = moldingStyle; data.panelCount = panelCount; }
     if (type === 'wall') { data.moldingType = moldingType; }
-    if (type === 'floor') { data.pattern = pattern; }
+    if (type === 'floor') { data.pattern = pattern; data.textureScale = textureScale; data.textureOrientation = textureOrientation; }
     onSave(data);
   };
 
@@ -201,14 +206,33 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
               )}
 
               {type === 'floor' && (
-                <div>
-                  <label className={labelCls}>Material turi</label>
-                  <select value={pattern} onChange={e => setPattern(e.target.value as any)} className={selectCls}>
-                    <option value="marble">Marmar</option>
-                    <option value="wood">Yog'och</option>
-                    <option value="tile">Plitka</option>
-                  </select>
-                </div>
+                <>
+                  <div>
+                    <label className={labelCls}>Material turi</label>
+                    <select value={pattern} onChange={e => setPattern(e.target.value as any)} className={selectCls}>
+                      <option value="marble">Marmar</option>
+                      <option value="wood">Yog'och</option>
+                      <option value="tile">Plitka</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Tekstura o'lchami</label>
+                      <select value={textureScale} onChange={e => setTextureScale(e.target.value as any)} className={selectCls}>
+                        <option value="small">Kichik</option>
+                        <option value="medium">O'rta</option>
+                        <option value="large">Katta</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Yo'nalish</label>
+                      <select value={textureOrientation} onChange={e => setTextureOrientation(e.target.value as any)} className={selectCls}>
+                        <option value="horizontal">Gorizontal</option>
+                        <option value="vertical">Vertikal</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 

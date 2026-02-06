@@ -292,6 +292,8 @@ function FloorsAdmin() {
       const { error } = await supabase.from('floors').insert({
         name: data.name, color: data.color, pattern: data.pattern ?? 'marble',
         image_url: imageUrl, sort_order: floors.length + 1,
+        texture_scale: data.textureScale ?? 'medium',
+        texture_orientation: data.textureOrientation ?? 'horizontal',
       });
       if (error) throw error;
       toast.success('Pol qo\'shildi');
