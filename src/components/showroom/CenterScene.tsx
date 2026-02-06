@@ -21,19 +21,22 @@ export default function CenterScene() {
 
   return (
     <div className="flex-1 h-full flex items-end justify-center relative overflow-hidden bg-scene">
-      {/* Wall layer — image or color */}
-      {wall?.image ? (
-        <img
-          src={wall.image}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover transition-showroom"
-        />
-      ) : (
-        <div
-          className="absolute inset-0 transition-showroom"
-          style={{ backgroundColor: wallColor }}
-        />
-      )}
+      {/* Wall layer — fixed structural container, image is texture only */}
+      <div
+        className="absolute inset-0 transition-showroom"
+        style={{
+          bottom: '14%',
+          backgroundColor: wallColor,
+          ...(wall?.image
+            ? {
+                backgroundImage: `url(${wall.image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }
+            : {}),
+        }}
+      />
 
       {/* Wall moldings (only when no wall image) */}
       {!wall?.image && (
