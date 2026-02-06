@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial } from '@/types/showroom';
-import { doorModels, doorColors, wallStyles, floorMaterials } from '@/data/showroom-data';
+import { useShowroomData } from '@/hooks/useShowroomData';
 
 interface ShowroomContextType {
   state: ShowroomState;
@@ -8,10 +8,8 @@ interface ShowroomContextType {
   colors: DoorColor[];
   walls: WallStyle[];
   floors: FloorMaterial[];
-  setDoors: React.Dispatch<React.SetStateAction<DoorModel[]>>;
-  setColors: React.Dispatch<React.SetStateAction<DoorColor[]>>;
-  setWalls: React.Dispatch<React.SetStateAction<WallStyle[]>>;
-  setFloors: React.Dispatch<React.SetStateAction<FloorMaterial[]>>;
+  loading: boolean;
+  refetch: () => Promise<void>;
   selectDoor: (id: string) => void;
   selectDoorColor: (id: string) => void;
   selectWall: (id: string) => void;
@@ -26,18 +24,27 @@ interface ShowroomContextType {
 const ShowroomContext = createContext<ShowroomContextType | null>(null);
 
 export function ShowroomProvider({ children }: { children: ReactNode }) {
-  const [doors, setDoors] = useState<DoorModel[]>(doorModels);
-  const [colors, setColors] = useState<DoorColor[]>(doorColors);
-  const [walls, setWalls] = useState<WallStyle[]>(wallStyles);
-  const [floors, setFloors] = useState<FloorMaterial[]>(floorMaterials);
+  const { doors, colors, walls, floors, loading, refetch } = useShowroomData();
 
   const [state, setState] = useState<ShowroomState>({
-    selectedDoor: 'classic-1',
-    selectedDoorColor: 'ivory',
-    selectedWall: 'wall-1',
-    selectedFloor: 'floor-1',
+    selectedDoor: '',
+    selectedDoorColor: '',
+    selectedWall: '',
+    selectedFloor: '',
     activeCollection: 'classic',
   });
+
+  // Auto-select first enabled items when data loads
+  React.useEffect(() => {
+    if (loading) return;
+    setState(s => ({
+      ...s,
+      selectedDoor: s.selectedDoor || doors.find(d => d.enabled)?.id || '',
+      selectedDoorColor: s.selectedDoorColor || colors.find(c => c.enabled)?.id || '',
+      selectedWall: s.selectedWall || walls.find(w => w.enabled)?.id || '',
+      selectedFloor: s.selectedFloor || floors.find(f => f.enabled)?.id || '',
+    }));
+  }, [loading, doors, colors, walls, floors]);
 
   const selectDoor = (id: string) => setState(s => ({ ...s, selectedDoor: id }));
   const selectDoorColor = (id: string) => setState(s => ({ ...s, selectedDoorColor: id }));
@@ -52,8 +59,7 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
 
   return (
     <ShowroomContext.Provider value={{
-      state, doors, colors, walls, floors,
-      setDoors, setColors, setWalls, setFloors,
+      state, doors, colors, walls, floors, loading, refetch,
       selectDoor, selectDoorColor, selectWall, selectFloor, setCollection,
       getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor,
     }}>
