@@ -16,7 +16,6 @@ export default function CenterScene() {
   const moldingStyle = door?.moldingStyle ?? 'simple';
   const panelCount = door?.panelCount ?? 2;
 
-  // Slightly lighter/darker variants for depth
   const wallLight = adjustBrightness(wallColor, 15);
   const wallDark = adjustBrightness(wallColor, -10);
   const doorLight = adjustBrightness(doorHex, 8);
@@ -24,17 +23,27 @@ export default function CenterScene() {
 
   return (
     <div className="flex-1 h-full flex items-end justify-center relative overflow-hidden bg-scene">
-      {/* Wall background */}
-      <div
-        className="absolute inset-0 transition-showroom"
-        style={{ backgroundColor: wallColor }}
-      />
+      {/* Wall layer — image or color */}
+      {wall?.image ? (
+        <img
+          src={wall.image}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover transition-showroom"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 transition-showroom"
+          style={{ backgroundColor: wallColor }}
+        />
+      )}
 
-      {/* Wall moldings - left panel */}
-      <WallMoldingPanel side="left" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
-
-      {/* Wall moldings - right panel */}
-      <WallMoldingPanel side="right" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
+      {/* Wall moldings (only when no wall image) */}
+      {!wall?.image && (
+        <>
+          <WallMoldingPanel side="left" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
+          <WallMoldingPanel side="right" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
+        </>
+      )}
 
       {/* Chandelier */}
       <img
@@ -43,15 +52,23 @@ export default function CenterScene() {
         className="absolute top-2 left-1/2 -translate-x-1/2 w-40 h-auto opacity-60 pointer-events-none z-10"
       />
 
-      {/* Door */}
+      {/* Door layer — image or generated */}
       <div className="absolute bottom-[14%] left-1/2 -translate-x-1/2 z-20 transition-showroom">
-        <DoorComponent
-          doorColor={doorHex}
-          doorLight={doorLight}
-          doorDark={doorDark}
-          moldingStyle={moldingStyle}
-          panelCount={panelCount}
-        />
+        {door?.image ? (
+          <img
+            src={door.image}
+            alt=""
+            className="h-[380px] w-auto object-contain transition-showroom animate-scale-in"
+          />
+        ) : (
+          <DoorComponent
+            doorColor={doorHex}
+            doorLight={doorLight}
+            doorDark={doorDark}
+            moldingStyle={moldingStyle}
+            panelCount={panelCount}
+          />
+        )}
       </div>
 
       {/* Decorative vases */}
@@ -66,22 +83,32 @@ export default function CenterScene() {
         className="absolute bottom-[14%] right-[12%] w-20 h-auto opacity-50 pointer-events-none z-10 scale-x-[-1]"
       />
 
-      {/* Floor */}
-      <div
-        className="absolute bottom-0 left-0 right-0 transition-showroom"
-        style={{
-          height: '14%',
-          backgroundColor: floorColor,
-          backgroundImage: floor?.pattern === 'marble'
-            ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
-            : floor?.pattern === 'wood'
-            ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
-            : undefined,
-        }}
-      >
-        {/* Floor gold strip */}
-        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
-      </div>
+      {/* Floor layer — image or generated */}
+      {floor?.image ? (
+        <div className="absolute bottom-0 left-0 right-0 transition-showroom" style={{ height: '14%' }}>
+          <img
+            src={floor.image}
+            alt=""
+            className="w-full h-full object-cover transition-showroom"
+          />
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
+        </div>
+      ) : (
+        <div
+          className="absolute bottom-0 left-0 right-0 transition-showroom"
+          style={{
+            height: '14%',
+            backgroundColor: floorColor,
+            backgroundImage: floor?.pattern === 'marble'
+              ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
+              : floor?.pattern === 'wood'
+              ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
+              : undefined,
+          }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: 'hsl(40, 60%, 55%)' }} />
+        </div>
+      )}
 
       {/* Subtle vignette */}
       <div className="absolute inset-0 pointer-events-none"
@@ -105,7 +132,6 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
 
   return (
     <div className={`absolute ${pos} top-[8%] bottom-[18%] w-[18%] z-10 transition-showroom`}>
-      {/* Outer frame */}
       <div
         className="absolute inset-0 rounded-sm transition-showroom"
         style={{
@@ -113,7 +139,6 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
           boxShadow: `inset 0 0 0 1px ${wallLight}, 0 2px 8px rgba(0,0,0,0.15)`,
         }}
       />
-      {/* Inner panel */}
       <div
         className="absolute inset-[12px] rounded-sm transition-showroom"
         style={{
@@ -121,7 +146,6 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
           boxShadow: `inset 0 0 0 1px ${wallLight}`,
         }}
       />
-      {/* Bottom decorative strip */}
       {isOrnate && (
         <div
           className="absolute bottom-[35%] left-[12px] right-[12px] h-[20px] transition-showroom"
@@ -132,7 +156,6 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
           }}
         />
       )}
-      {/* Corner ornaments for ornate */}
       {isOrnate && (
         <>
           <CornerOrnament position="top-left" color={wallDark} />
@@ -176,12 +199,8 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
   return (
     <div
       className="relative transition-showroom animate-scale-in"
-      style={{
-        width: '180px',
-        height: '380px',
-      }}
+      style={{ width: '180px', height: '380px' }}
     >
-      {/* Door frame */}
       <div
         className="absolute -inset-3 rounded-sm transition-showroom"
         style={{
@@ -189,8 +208,6 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
           boxShadow: `0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 ${doorLight}`,
         }}
       />
-
-      {/* Door body */}
       <div
         className="absolute inset-0 rounded-sm transition-showroom"
         style={{
@@ -198,7 +215,6 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
           boxShadow: `inset 2px 2px 4px ${doorLight}, inset -2px -2px 4px ${doorDark}`,
         }}
       >
-        {/* Panels */}
         <div className={`flex flex-col ${panelGap} p-4 h-full`}>
           {Array.from({ length: panelCount }).map((_, i) => (
             <div
@@ -210,7 +226,6 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
                 backgroundColor: adjustBrightness(doorColor, -3),
               }}
             >
-              {/* Inner molding for ornate */}
               {isOrnate && (
                 <div
                   className="m-2 h-[calc(100%-16px)] rounded-sm transition-showroom"
@@ -223,12 +238,7 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
             </div>
           ))}
         </div>
-
-        {/* Door handle */}
-        <div
-          className="absolute right-4 top-1/2 -translate-y-1/2 transition-showroom"
-          style={{ zIndex: 5 }}
-        >
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 transition-showroom" style={{ zIndex: 5 }}>
           <div
             className="w-2 h-8 rounded-full"
             style={{
@@ -238,9 +248,7 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
           />
           <div
             className="w-1.5 h-1.5 rounded-full absolute -bottom-3 left-1/2 -translate-x-1/2"
-            style={{
-              background: `linear-gradient(180deg, #C4A86C, #8B7340)`,
-            }}
+            style={{ background: `linear-gradient(180deg, #C4A86C, #8B7340)` }}
           />
         </div>
       </div>
