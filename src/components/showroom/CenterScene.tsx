@@ -91,7 +91,7 @@ export default function CenterScene() {
         <div
           className="absolute inset-0 transition-showroom"
           style={{
-            transform: 'rotateX(15deg)',
+            transform: 'rotateX(80deg)',
             transformOrigin: 'center top',
             backgroundColor: floorColor,
             ...(floor?.image
