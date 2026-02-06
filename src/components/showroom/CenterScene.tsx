@@ -1,5 +1,5 @@
 import { useShowroom } from '@/context/ShowroomContext';
-import { TextureScale, TextureOrientation } from '@/types/showroom';
+import { TextureScale } from '@/types/showroom';
 
 export default function CenterScene() {
   const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor } = useShowroom();
@@ -90,7 +90,7 @@ export default function CenterScene() {
                 backgroundImage: `url(${floor.image})`,
                 backgroundRepeat: 'repeat',
                 backgroundPosition: 'center',
-                backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, floor.textureOrientation),
+                backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale),
               }
             : {
                 backgroundImage: floor?.pattern === 'marble'
@@ -250,11 +250,10 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
   );
 }
 
-/** UV-style texture sizing based on material type and scale */
+/** UV-style texture sizing — always horizontal, like real floor materials */
 function getFloorTextureSize(
   pattern: string,
   scale: TextureScale = 'medium',
-  orientation: TextureOrientation = 'horizontal'
 ): string {
   const scaleMultipliers: Record<TextureScale, number> = {
     small: 0.6,
@@ -263,17 +262,9 @@ function getFloorTextureSize(
   };
   const m = scaleMultipliers[scale];
 
-  // Base sizes simulate real-world tile/plank dimensions
-  let w: number, h: number;
-  if (pattern === 'wood') {
-    w = 180 * m; h = 1200 * m; // plank proportions
-  } else {
-    w = 300 * m; h = 300 * m; // tile/marble proportions
-  }
-
-  if (orientation === 'vertical') {
-    [w, h] = [h, w];
-  }
+  // Base sizes simulate real-world tile/plank dimensions (always horizontal)
+  const w = pattern === 'wood' ? 180 * m : 300 * m;
+  const h = pattern === 'wood' ? 1200 * m : 300 * m;
 
   return `${w}px ${h}px`;
 }
