@@ -1,12 +1,8 @@
 import { useShowroom } from '@/context/ShowroomContext';
-import { collectionNames } from '@/data/showroom-data';
-import { DoorCollection } from '@/types/showroom';
-
-const collections: DoorCollection[] = ['classic', 'neo-classic', 'luxury'];
 
 export default function LeftPanel() {
-  const { state, doors, selectDoor, setCollection } = useShowroom();
-  const filteredDoors = doors.filter(d => d.collection === state.activeCollection && d.enabled);
+  const { state, walls, filteredDoors, selectDoor, selectWall } = useShowroom();
+  const enabledWalls = walls.filter(w => w.enabled);
 
   return (
     <div
@@ -24,21 +20,21 @@ export default function LeftPanel() {
         />
       </div>
 
-      {/* Collections */}
+      {/* Room Styles (Primary) */}
       <p
         className="text-[10px] uppercase tracking-[0.25em] font-body mb-4"
         style={{ color: 'hsl(40 30% 50%)' }}
       >
-        Kolleksiyalar
+        Xona uslubi
       </p>
       <div className="space-y-1.5 mb-6">
-        {collections.map(c => {
-          const active = state.activeCollection === c;
+        {enabledWalls.map(wall => {
+          const active = state.selectedWall === wall.id;
           return (
             <button
-              key={c}
-              onClick={() => setCollection(c)}
-              className="w-full text-left px-4 py-3 rounded-xl font-display text-base tracking-wide transition-all duration-500"
+              key={wall.id}
+              onClick={() => selectWall(wall.id)}
+              className="w-full flex items-center gap-3 text-left px-3 py-3 rounded-xl font-body text-sm tracking-wide transition-all duration-500"
               style={{
                 background: active
                   ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.15) 0%, hsl(40 45% 50% / 0.05) 100%)'
@@ -49,7 +45,17 @@ export default function LeftPanel() {
                   : 'none',
               }}
             >
-              {collectionNames[c]}
+              {wall.image ? (
+                <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0"
+                  style={{ boxShadow: active ? '0 0 0 1px hsl(40 60% 55% / 0.4)' : '0 1px 4px rgba(0,0,0,0.3)' }}>
+                  <img src={wall.image} alt="" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-lg flex-shrink-0"
+                  style={{ backgroundColor: wall.color, boxShadow: active ? '0 0 0 1px hsl(40 60% 55% / 0.4)' : '0 1px 4px rgba(0,0,0,0.3)' }}
+                />
+              )}
+              <span className="truncate">{wall.name}</span>
             </button>
           );
         })}
@@ -62,14 +68,19 @@ export default function LeftPanel() {
         <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
       </div>
 
-      {/* Models */}
+      {/* Door Models (Secondary — filtered by room) */}
       <p
         className="text-[10px] uppercase tracking-[0.25em] font-body mt-4 mb-4"
         style={{ color: 'hsl(40 30% 50%)' }}
       >
-        Modellar
+        Eshik modellari
       </p>
       <div className="flex-1 space-y-1 overflow-auto glass-scrollbar">
+        {filteredDoors.length === 0 && (
+          <p className="text-xs text-center py-4" style={{ color: 'hsl(40 10% 40%)' }}>
+            Bu xona uchun eshik tayinlanmagan
+          </p>
+        )}
         {filteredDoors.map(door => {
           const active = state.selectedDoor === door.id;
           return (

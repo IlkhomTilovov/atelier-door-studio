@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { collectionNames } from '@/data/showroom-data';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle, LinkIcon, Unlink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAssetImage } from '@/hooks/useShowroomData';
 import AssetModal, { AssetModalData } from '@/components/admin/AssetModal';
 import { toast } from 'sonner';
 
-type AdminTab = 'doors' | 'walls' | 'floors';
+type AdminTab = 'doors' | 'walls' | 'floors' | 'assignments';
 
 const cardCls = "group relative bg-card/60 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-card/80 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 border border-border/40";
 const iconBtn = "p-2 rounded-lg transition-all duration-200 hover:scale-110";
@@ -74,7 +74,7 @@ function SectionHeader({ title, count, onAdd }: { title: string; count: number; 
 // ═══════════════════════ Main ═══════════════════════
 
 export default function Admin() {
-  const [tab, setTab] = useState<AdminTab>('doors');
+  const [tab, setTab] = useState<AdminTab>('walls');
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,17 +87,18 @@ export default function Admin() {
         <h1 className="font-display text-2xl text-gold tracking-wider">Admin Panel</h1>
       </header>
       <div className="px-8 flex gap-6 border-b border-border/30">
-        {(['doors', 'walls', 'floors'] as AdminTab[]).map(t => (
+        {(['walls', 'doors', 'floors', 'assignments'] as AdminTab[]).map(t => (
           <button key={t} onClick={() => setTab(t)} className={`relative px-1 py-4 font-body text-sm tracking-wide transition-all duration-300 ${tab === t ? 'text-gold' : 'text-muted-foreground/60 hover:text-foreground/80'}`}>
-            {t === 'doors' ? 'Eshiklar' : t === 'walls' ? 'Devorlar' : 'Pollar'}
+            {t === 'doors' ? 'Eshiklar' : t === 'walls' ? 'Xona uslublari' : t === 'floors' ? 'Pollar' : 'Bog\'lash'}
             {tab === t && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold-dark via-gold to-gold-dark rounded-full" />}
           </button>
         ))}
       </div>
       <div className="p-8 max-w-5xl mx-auto admin-scroll">
-        {tab === 'doors' && <DoorsAdmin />}
         {tab === 'walls' && <WallsAdmin />}
+        {tab === 'doors' && <DoorsAdmin />}
         {tab === 'floors' && <FloorsAdmin />}
+        {tab === 'assignments' && <AssignmentsAdmin />}
       </div>
     </div>
   );
@@ -106,7 +107,7 @@ export default function Admin() {
 // ═══════════════════════ Doors ═══════════════════════
 
 function DoorsAdmin() {
-  const { doors, colors } = useShowroom();
+  const { allDoors: doors, allColors: colors } = useShowroom();
   const [showDoorModal, setShowDoorModal] = useState(false);
   const [showColorModal, setShowColorModal] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -216,7 +217,7 @@ function DoorsAdmin() {
 // ═══════════════════════ Walls ═══════════════════════
 
 function WallsAdmin() {
-  const { walls } = useShowroom();
+  const { allWalls: walls } = useShowroom();
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -231,7 +232,7 @@ function WallsAdmin() {
         image_url: imageUrl, sort_order: walls.length + 1,
       });
       if (error) throw error;
-      toast.success('Devor qo\'shildi');
+      toast.success('Xona uslubi qo\'shildi');
       setShowModal(false);
     } catch (e: any) { toast.error(e.message); }
     setSaving(false);
@@ -243,7 +244,7 @@ function WallsAdmin() {
 
   return (
     <>
-      <SectionHeader title="Devor uslublari" count={walls.length} onAdd={() => setShowModal(true)} />
+      <SectionHeader title="Xona uslublari" count={walls.length} onAdd={() => setShowModal(true)} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {walls.map(wall => (
           <div key={wall.id} className={cardCls}>
@@ -268,7 +269,7 @@ function WallsAdmin() {
           </div>
         ))}
       </div>
-      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addWall} type="wall" title="Yangi devor uslubi" saving={saving} />
+      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addWall} type="wall" title="Yangi xona uslubi" saving={saving} />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={async () => { if (deleteTarget) { await supabase.from('walls').delete().eq('id', deleteTarget.id); setDeleteTarget(null); toast.success('O\'chirildi'); } }} name={deleteTarget?.name ?? ''} />
     </>
   );
@@ -277,7 +278,7 @@ function WallsAdmin() {
 // ═══════════════════════ Floors ═══════════════════════
 
 function FloorsAdmin() {
-  const { floors } = useShowroom();
+  const { allFloors: floors } = useShowroom();
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -336,5 +337,198 @@ function FloorsAdmin() {
       <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addFloor} type="floor" title="Yangi pol materiali" saving={saving} />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={async () => { if (deleteTarget) { await supabase.from('floors').delete().eq('id', deleteTarget.id); setDeleteTarget(null); toast.success('O\'chirildi'); } }} name={deleteTarget?.name ?? ''} />
     </>
+  );
+}
+
+// ═══════════════════════ Assignments ═══════════════════════
+
+function AssignmentsAdmin() {
+  const { allWalls: walls, allDoors: doors, allColors: colors, allFloors: floors, roomDoors, roomFloors, doorModelColors } = useShowroom();
+  const [selectedWall, setSelectedWall] = useState<string>('');
+  const [selectedDoor, setSelectedDoor] = useState<string>('');
+
+  const activeWall = selectedWall || walls[0]?.id || '';
+  const activeDoor = selectedDoor || doors[0]?.id || '';
+
+  // Which doors are assigned to this wall
+  const assignedDoorIds = new Set(roomDoors.filter(rd => rd.wall_id === activeWall).map(rd => rd.door_id));
+  // Which floors are assigned to this wall
+  const assignedFloorIds = new Set(roomFloors.filter(rf => rf.wall_id === activeWall).map(rf => rf.floor_id));
+  // Which colors are assigned to this door
+  const assignedColorIds = new Set(doorModelColors.filter(dmc => dmc.door_id === activeDoor).map(dmc => dmc.color_id));
+
+  const toggleRoomDoor = async (doorId: string) => {
+    if (assignedDoorIds.has(doorId)) {
+      await supabase.from('room_doors').delete().eq('wall_id', activeWall).eq('door_id', doorId);
+      toast.success('Eshik bog\'lanmasi olib tashlandi');
+    } else {
+      await supabase.from('room_doors').insert({ wall_id: activeWall, door_id: doorId });
+      toast.success('Eshik bog\'landi');
+    }
+  };
+
+  const toggleRoomFloor = async (floorId: string) => {
+    if (assignedFloorIds.has(floorId)) {
+      await supabase.from('room_floors').delete().eq('wall_id', activeWall).eq('floor_id', floorId);
+      toast.success('Pol bog\'lanmasi olib tashlandi');
+    } else {
+      await supabase.from('room_floors').insert({ wall_id: activeWall, floor_id: floorId });
+      toast.success('Pol bog\'landi');
+    }
+  };
+
+  const toggleDoorColor = async (colorId: string) => {
+    if (assignedColorIds.has(colorId)) {
+      await supabase.from('door_model_colors').delete().eq('door_id', activeDoor).eq('color_id', colorId);
+      toast.success('Rang bog\'lanmasi olib tashlandi');
+    } else {
+      await supabase.from('door_model_colors').insert({ door_id: activeDoor, color_id: colorId });
+      toast.success('Rang bog\'landi');
+    }
+  };
+
+  return (
+    <div className="space-y-10">
+      {/* Room → Door & Floor Assignments */}
+      <div>
+        <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
+          <LinkIcon className="w-5 h-5 text-gold" />
+          Xona → Eshik & Pol bog'lash
+        </h2>
+
+        {/* Wall selector */}
+        <div className="mb-6">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Xona uslubini tanlang</p>
+          <div className="flex flex-wrap gap-2">
+            {walls.map(wall => (
+              <button
+                key={wall.id}
+                onClick={() => setSelectedWall(wall.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-body text-sm transition-all duration-300 ${
+                  activeWall === wall.id
+                    ? 'bg-gold/15 text-gold border border-gold/30 shadow-[0_0_12px_rgba(180,160,100,0.15)]'
+                    : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
+                }`}
+              >
+                {wall.image ? (
+                  <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0">
+                    <img src={wall.image} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-6 h-6 rounded flex-shrink-0" style={{ backgroundColor: wall.color }} />
+                )}
+                {wall.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Doors grid */}
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos eshiklar</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+          {doors.map(door => {
+            const assigned = assignedDoorIds.has(door.id);
+            return (
+              <button
+                key={door.id}
+                onClick={() => toggleRoomDoor(door.id)}
+                className={`relative p-3 rounded-xl text-left font-body text-sm transition-all duration-300 ${
+                  assigned
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    : 'bg-card/40 border border-border/30 text-muted-foreground hover:bg-card/60'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {assigned ? <LinkIcon className="w-3.5 h-3.5" /> : <Unlink className="w-3.5 h-3.5 opacity-40" />}
+                  <span className="truncate">{door.name}</span>
+                </div>
+                <p className="text-[10px] mt-1 opacity-60">{collectionNames[door.collection]}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Floors grid */}
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos pollar</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {floors.map(floor => {
+            const assigned = assignedFloorIds.has(floor.id);
+            return (
+              <button
+                key={floor.id}
+                onClick={() => toggleRoomFloor(floor.id)}
+                className={`relative p-3 rounded-xl text-left font-body text-sm transition-all duration-300 ${
+                  assigned
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    : 'bg-card/40 border border-border/30 text-muted-foreground hover:bg-card/60'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {floor.image ? (
+                    <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0"><img src={floor.image} alt="" className="w-full h-full object-cover" /></div>
+                  ) : (
+                    <div className="w-6 h-6 rounded flex-shrink-0" style={{ backgroundColor: floor.color }} />
+                  )}
+                  <span className="truncate">{floor.name}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Door → Color Assignments */}
+      <div>
+        <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
+          <LinkIcon className="w-5 h-5 text-gold" />
+          Eshik → Rang bog'lash
+        </h2>
+
+        {/* Door selector */}
+        <div className="mb-6">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Eshik modelini tanlang</p>
+          <div className="flex flex-wrap gap-2">
+            {doors.map(door => (
+              <button
+                key={door.id}
+                onClick={() => setSelectedDoor(door.id)}
+                className={`px-4 py-2.5 rounded-xl font-body text-sm transition-all duration-300 ${
+                  activeDoor === door.id
+                    ? 'bg-gold/15 text-gold border border-gold/30 shadow-[0_0_12px_rgba(180,160,100,0.15)]'
+                    : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
+                }`}
+              >
+                {door.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Colors grid */}
+        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos ranglar</p>
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {colors.map(color => {
+            const assigned = assignedColorIds.has(color.id);
+            return (
+              <button
+                key={color.id}
+                onClick={() => toggleDoorColor(color.id)}
+                className={`relative p-3 rounded-xl text-center font-body text-sm transition-all duration-300 ${
+                  assigned
+                    ? 'bg-emerald-500/10 border border-emerald-500/30'
+                    : 'bg-card/40 border border-border/30 hover:bg-card/60'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-lg mx-auto mb-2" style={{
+                  backgroundColor: color.hex,
+                  boxShadow: assigned ? '0 0 0 2px rgb(16 185 129 / 0.5)' : '0 2px 6px rgba(0,0,0,0.25)',
+                }} />
+                <span className={`text-xs ${assigned ? 'text-emerald-400' : 'text-muted-foreground'}`}>{color.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
