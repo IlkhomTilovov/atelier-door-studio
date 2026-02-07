@@ -41,6 +41,42 @@ export type Database = {
         }
         Relationships: []
       }
+      door_model_colors: {
+        Row: {
+          color_id: string
+          created_at: string
+          door_id: string
+          id: string
+        }
+        Insert: {
+          color_id: string
+          created_at?: string
+          door_id: string
+          id?: string
+        }
+        Update: {
+          color_id?: string
+          created_at?: string
+          door_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "door_model_colors_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "door_colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "door_model_colors_door_id_fkey"
+            columns: ["door_id"]
+            isOneToOne: false
+            referencedRelation: "doors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doors: {
         Row: {
           collection: string
@@ -115,6 +151,78 @@ export type Database = {
           texture_scale?: string
         }
         Relationships: []
+      }
+      room_doors: {
+        Row: {
+          created_at: string
+          door_id: string
+          id: string
+          wall_id: string
+        }
+        Insert: {
+          created_at?: string
+          door_id: string
+          id?: string
+          wall_id: string
+        }
+        Update: {
+          created_at?: string
+          door_id?: string
+          id?: string
+          wall_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_doors_door_id_fkey"
+            columns: ["door_id"]
+            isOneToOne: false
+            referencedRelation: "doors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_doors_wall_id_fkey"
+            columns: ["wall_id"]
+            isOneToOne: false
+            referencedRelation: "walls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_floors: {
+        Row: {
+          created_at: string
+          floor_id: string
+          id: string
+          wall_id: string
+        }
+        Insert: {
+          created_at?: string
+          floor_id: string
+          id?: string
+          wall_id: string
+        }
+        Update: {
+          created_at?: string
+          floor_id?: string
+          id?: string
+          wall_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_floors_floor_id_fkey"
+            columns: ["floor_id"]
+            isOneToOne: false
+            referencedRelation: "floors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_floors_wall_id_fkey"
+            columns: ["wall_id"]
+            isOneToOne: false
+            referencedRelation: "walls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       walls: {
         Row: {

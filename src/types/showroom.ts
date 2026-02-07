@@ -47,3 +47,19 @@ export interface ShowroomState {
   selectedFloor: string;
   activeCollection: DoorCollection;
 }
+
+// Junction data types
+export interface RoomDoor {
+  wall_id: string;
+  door_id: string;
+}
+
+export interface RoomFloor {
+  wall_id: string;
+  floor_id: string;
+}
+
+export interface DoorModelColor {
+  door_id: string;
+  color_id: string;
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection } from '@/types/showroom';
+import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor } from '@/types/showroom';
 
 function mapDoor(row: any): DoorModel {
   return {
@@ -41,19 +41,28 @@ export function useShowroomData() {
   const [colors, setColors] = useState<DoorColor[]>([]);
   const [walls, setWalls] = useState<WallStyle[]>([]);
   const [floors, setFloors] = useState<FloorMaterial[]>([]);
+  const [roomDoors, setRoomDoors] = useState<RoomDoor[]>([]);
+  const [roomFloors, setRoomFloors] = useState<RoomFloor[]>([]);
+  const [doorModelColors, setDoorModelColors] = useState<DoorModelColor[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
-    const [d, c, w, f] = await Promise.all([
+    const [d, c, w, f, rd, rf, dmc] = await Promise.all([
       supabase.from('doors').select('*').order('sort_order'),
       supabase.from('door_colors').select('*').order('sort_order'),
       supabase.from('walls').select('*').order('sort_order'),
       supabase.from('floors').select('*').order('sort_order'),
+      supabase.from('room_doors').select('wall_id, door_id'),
+      supabase.from('room_floors').select('wall_id, floor_id'),
+      supabase.from('door_model_colors').select('door_id, color_id'),
     ]);
     if (d.data) setDoors(d.data.map(mapDoor));
     if (c.data) setColors(c.data.map(mapColor));
     if (w.data) setWalls(w.data.map(mapWall));
     if (f.data) setFloors(f.data.map(mapFloor));
+    if (rd.data) setRoomDoors(rd.data);
+    if (rf.data) setRoomFloors(rf.data);
+    if (dmc.data) setDoorModelColors(dmc.data);
     setLoading(false);
   };
 
@@ -82,12 +91,32 @@ export function useShowroomData() {
           if (data) setFloors(data.map(mapFloor));
         });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_doors' }, () => {
+        supabase.from('room_doors').select('wall_id, door_id').then(({ data }) => {
+          if (data) setRoomDoors(data);
+        });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_floors' }, () => {
+        supabase.from('room_floors').select('wall_id, floor_id').then(({ data }) => {
+          if (data) setRoomFloors(data);
+        });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'door_model_colors' }, () => {
+        supabase.from('door_model_colors').select('door_id, color_id').then(({ data }) => {
+          if (data) setDoorModelColors(data);
+        });
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  return { doors, colors, walls, floors, setDoors, setColors, setWalls, setFloors, loading, refetch: fetchAll };
+  return {
+    doors, colors, walls, floors,
+    roomDoors, roomFloors, doorModelColors,
+    setDoors, setColors, setWalls, setFloors,
+    loading, refetch: fetchAll,
+  };
 }
 
 export async function uploadAssetImage(file: File, folder: string): Promise<string | null> {
