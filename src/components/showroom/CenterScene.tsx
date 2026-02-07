@@ -48,15 +48,6 @@ export default function CenterScene() {
       )}
 
 
-      {/* Gypsum leaf decorations — left side */}
-      <div className="absolute z-15 transition-showroom" style={{ bottom: '22%', left: '22%', transform: 'translateX(-50%)' }}>
-        <LeafDecor side="left" />
-      </div>
-
-      {/* Gypsum leaf decorations — right side */}
-      <div className="absolute z-15 transition-showroom" style={{ bottom: '22%', right: '22%', transform: 'translateX(50%)' }}>
-        <LeafDecor side="right" />
-      </div>
 
       {/* Door layer — sized relative to wall, not image */}
       <div

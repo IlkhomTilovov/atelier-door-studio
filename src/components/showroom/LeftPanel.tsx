@@ -103,17 +103,18 @@ export default function LeftPanel() {
       {/* Toggle button */}
       <button
         onClick={() => setCollapsed(c => !c)}
-        className="absolute top-1/2 -translate-y-1/2 z-40 w-7 h-14 rounded-r-lg flex items-center justify-center transition-all duration-300 hover:scale-105"
+        className="absolute top-1/2 -translate-y-1/2 z-40 w-6 h-12 rounded-r-md flex items-center justify-center transition-all duration-500 hover:opacity-100"
         style={{
           left: collapsed ? '0px' : '240px',
-          background: 'hsl(220 15% 18% / 0.7)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid hsl(40 60% 55% / 0.15)',
+          background: 'hsl(220 15% 15% / 0.35)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid hsl(0 0% 100% / 0.06)',
           borderLeft: 'none',
-          color: 'hsl(40 40% 60%)',
+          color: 'hsl(40 30% 60% / 0.7)',
+          opacity: 0.6,
         }}
       >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
     </div>
   );
