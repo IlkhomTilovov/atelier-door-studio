@@ -48,6 +48,16 @@ export default function CenterScene() {
       )}
 
 
+      {/* Gypsum leaf decorations — left side */}
+      <div className="absolute z-15 transition-showroom" style={{ bottom: '22%', left: '22%', transform: 'translateX(-50%)' }}>
+        <LeafDecor side="left" />
+      </div>
+
+      {/* Gypsum leaf decorations — right side */}
+      <div className="absolute z-15 transition-showroom" style={{ bottom: '22%', right: '22%', transform: 'translateX(50%)' }}>
+        <LeafDecor side="right" />
+      </div>
+
       {/* Door layer — sized relative to wall, not image */}
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
@@ -193,6 +203,47 @@ function CornerOrnament({ position, color }: { position: string; color: string }
         borderRadius: '1px',
       }}
     />
+  );
+}
+
+function LeafDecor({ side }: { side: 'left' | 'right' }) {
+  const flip = side === 'right' ? 'scaleX(-1)' : 'none';
+  return (
+    <div className="relative" style={{ width: '80px', height: '160px', transform: flip }}>
+      {/* Soft backlight glow */}
+      <div className="absolute inset-0" style={{
+        background: 'radial-gradient(ellipse at center, rgba(212,195,150,0.15) 0%, transparent 70%)',
+        filter: 'blur(10px)',
+      }} />
+      <svg viewBox="0 0 80 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
+        {/* Main stem */}
+        <path d="M40 155 Q40 80 40 10" stroke="rgba(180,165,130,0.6)" strokeWidth="1.5" fill="none" />
+        {/* Leaf pairs — top */}
+        <path d="M40 25 Q20 15 12 30 Q22 35 40 25" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
+        <path d="M40 25 Q60 15 68 30 Q58 35 40 25" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
+        {/* Leaf pair 2 */}
+        <path d="M40 45 Q15 30 8 50 Q20 55 40 45" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
+        <path d="M40 45 Q65 30 72 50 Q60 55 40 45" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
+        {/* Leaf pair 3 — largest */}
+        <path d="M40 70 Q10 50 5 75 Q18 82 40 70" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.5)" strokeWidth="0.8" />
+        <path d="M40 70 Q70 50 75 75 Q62 82 40 70" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.5)" strokeWidth="0.8" />
+        {/* Leaf pair 4 */}
+        <path d="M40 95 Q12 78 6 100 Q20 107 40 95" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
+        <path d="M40 95 Q68 78 74 100 Q60 107 40 95" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
+        {/* Leaf pair 5 — bottom */}
+        <path d="M40 120 Q18 108 10 125 Q24 130 40 120" fill="rgba(195,180,145,0.2)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
+        <path d="M40 120 Q62 108 70 125 Q56 130 40 120" fill="rgba(195,180,145,0.2)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
+        {/* Top ornament bud */}
+        <ellipse cx="40" cy="8" rx="4" ry="6" fill="rgba(195,180,145,0.35)" stroke="rgba(180,165,130,0.5)" strokeWidth="0.8" />
+        {/* Subtle light dots on leaves */}
+        <circle cx="25" cy="48" r="1.5" fill="rgba(230,220,190,0.4)" />
+        <circle cx="55" cy="48" r="1.5" fill="rgba(230,220,190,0.4)" />
+        <circle cx="20" cy="75" r="2" fill="rgba(230,220,190,0.35)" />
+        <circle cx="60" cy="75" r="2" fill="rgba(230,220,190,0.35)" />
+        <circle cx="22" cy="100" r="1.5" fill="rgba(230,220,190,0.3)" />
+        <circle cx="58" cy="100" r="1.5" fill="rgba(230,220,190,0.3)" />
+      </svg>
+    </div>
   );
 }
 
