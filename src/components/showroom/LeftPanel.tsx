@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
@@ -23,36 +23,37 @@ export default function LeftPanel() {
   const [collapsed, setCollapsed] = useState(false);
 
   const [catOpen, setCatOpen] = useState(false);
-  const [wallOpen, setWallOpen] = useState(false);
   const catRef = useRef<HTMLDivElement>(null);
-  const wallRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(catRef as React.RefObject<HTMLElement>, () => setCatOpen(false));
-  useClickOutside(wallRef as React.RefObject<HTMLElement>, () => setWallOpen(false));
 
   const selectedCat = enabledCategories.find(c => c.id === state.selectedCategory);
   const selectedWall = filteredWalls.find(w => w.id === state.selectedWall);
 
-  // Keyboard nav for category
+  // Scroll active carousel item into view
+  useEffect(() => {
+    if (!carouselRef.current || !state.selectedWall) return;
+    const active = carouselRef.current.querySelector(`[data-wall-id="${state.selectedWall}"]`) as HTMLElement;
+    if (active) {
+      active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [state.selectedWall, filteredWalls]);
+
+  const scrollCarousel = useCallback((dir: number) => {
+    if (!carouselRef.current) return;
+    carouselRef.current.scrollBy({ left: dir * 100, behavior: 'smooth' });
+  }, []);
+
+  // Category keyboard nav
   const handleCatKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') return setCatOpen(false);
     if (!catOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); return setCatOpen(true); }
     if (!catOpen) return;
     const idx = enabledCategories.findIndex(c => c.id === state.selectedCategory);
-    if (e.key === 'ArrowDown') { e.preventDefault(); const next = enabledCategories[(idx + 1) % enabledCategories.length]; selectCategory(next.id); }
-    if (e.key === 'ArrowUp') { e.preventDefault(); const prev = enabledCategories[(idx - 1 + enabledCategories.length) % enabledCategories.length]; selectCategory(prev.id); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectCategory(enabledCategories[(idx + 1) % enabledCategories.length].id); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); selectCategory(enabledCategories[(idx - 1 + enabledCategories.length) % enabledCategories.length].id); }
     if (e.key === 'Enter') setCatOpen(false);
-  };
-
-  // Keyboard nav for wall
-  const handleWallKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') return setWallOpen(false);
-    if (!wallOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); return setWallOpen(true); }
-    if (!wallOpen) return;
-    const idx = filteredWalls.findIndex(w => w.id === state.selectedWall);
-    if (e.key === 'ArrowDown') { e.preventDefault(); const next = filteredWalls[(idx + 1) % filteredWalls.length]; selectWall(next.id); }
-    if (e.key === 'ArrowUp') { e.preventDefault(); const prev = filteredWalls[(idx - 1 + filteredWalls.length) % filteredWalls.length]; selectWall(prev.id); }
-    if (e.key === 'Enter') setWallOpen(false);
   };
 
   const triggerStyle = {
@@ -137,76 +138,110 @@ export default function LeftPanel() {
           <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
         </div>
 
-        {/* Room Design Dropdown */}
-        <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-2" style={{ color: 'hsl(40 30% 50%)' }}>
+        {/* Room Design Carousel */}
+        <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-3" style={{ color: 'hsl(40 30% 50%)' }}>
           Xona dizayni
         </p>
-        <div ref={wallRef} className="relative mb-6" onKeyDown={handleWallKey} tabIndex={0}>
-          <button
-            onClick={() => { if (state.selectedCategory && filteredWalls.length > 0) setWallOpen(o => !o); }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-body text-sm tracking-wide transition-all duration-300 outline-none"
-            style={{
-              ...triggerStyle,
-              opacity: !state.selectedCategory || filteredWalls.length === 0 ? 0.4 : 1,
-              cursor: !state.selectedCategory || filteredWalls.length === 0 ? 'not-allowed' : 'pointer',
-              boxShadow: wallOpen ? '0 0 0 1px hsl(40 60% 55% / 0.35), 0 0 16px hsl(40 60% 55% / 0.08)' : 'none',
-            }}
-          >
-            {selectedWall ? (
+
+        {filteredWalls.length === 0 ? (
+          <p className="text-xs text-center py-3 mb-4" style={{ color: 'hsl(40 10% 40%)' }}>
+            {!state.selectedCategory ? 'Avval kategoriya tanlang' : 'Bu kategoriyada dizayn yo\'q'}
+          </p>
+        ) : (
+          <div className="relative mb-5">
+            {/* Arrows */}
+            {filteredWalls.length > 2 && (
               <>
-                {selectedWall.image ? (
-                  <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
-                    <img src={selectedWall.image} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-7 h-7 rounded-lg flex-shrink-0" style={{ backgroundColor: selectedWall.color, boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }} />
-                )}
-                <span className="truncate flex-1 text-left">{selectedWall.name}</span>
+                <button
+                  onClick={() => scrollCarousel(-1)}
+                  className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+                  style={{
+                    background: 'hsl(220 15% 16% / 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid hsl(40 60% 55% / 0.15)',
+                    color: 'hsl(40 40% 65%)',
+                  }}
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => scrollCarousel(1)}
+                  className="absolute -right-1 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+                  style={{
+                    background: 'hsl(220 15% 16% / 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid hsl(40 60% 55% / 0.15)',
+                    color: 'hsl(40 40% 65%)',
+                  }}
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </>
-            ) : (
-              <span className="truncate flex-1 text-left" style={{ color: 'hsl(40 15% 45%)' }}>
-                {!state.selectedCategory ? 'Avval kategoriya tanlang' : filteredWalls.length === 0 ? 'Dizayn topilmadi' : 'Tanlang...'}
-              </span>
             )}
-            <ChevronDown
-              className="w-4 h-4 flex-shrink-0 transition-transform duration-300"
-              style={{ color: 'hsl(40 40% 60%)', transform: wallOpen ? 'rotate(180deg)' : 'rotate(0)' }}
-            />
-          </button>
-          {wallOpen && filteredWalls.length > 0 && (
+
+            {/* Carousel track */}
             <div
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl overflow-hidden overflow-y-auto py-1 animate-fade-in"
-              style={{ ...dropdownStyle, maxHeight: '220px' }}
+              ref={carouselRef}
+              className="flex gap-2.5 overflow-x-auto px-1 py-2 snap-x snap-mandatory"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch',
+              }}
             >
+              <style>{`div[data-carousel-track]::-webkit-scrollbar { display: none; }`}</style>
               {filteredWalls.map(wall => {
                 const active = state.selectedWall === wall.id;
                 return (
                   <button
                     key={wall.id}
-                    onClick={() => { selectWall(wall.id); setWallOpen(false); }}
-                    className="w-full flex items-center gap-3 text-left px-3 py-2.5 font-body text-sm tracking-wide transition-all duration-200"
+                    data-wall-id={wall.id}
+                    onClick={() => selectWall(wall.id)}
+                    className="flex-shrink-0 snap-center flex flex-col items-center gap-1.5 rounded-xl p-2 transition-all duration-400 outline-none"
                     style={{
-                      background: active ? 'linear-gradient(90deg, hsl(40 50% 55% / 0.15), transparent)' : 'transparent',
-                      color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 58%)',
-                      borderLeft: active ? '2px solid hsl(40 60% 55% / 0.6)' : '2px solid transparent',
+                      width: '72px',
+                      background: active
+                        ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.12), hsl(40 45% 50% / 0.04))'
+                        : 'hsl(220 15% 18% / 0.3)',
+                      border: active
+                        ? '1.5px solid hsl(40 60% 55% / 0.45)'
+                        : '1.5px solid hsl(0 0% 100% / 0.04)',
+                      boxShadow: active
+                        ? '0 0 16px hsl(40 60% 55% / 0.12), 0 4px 12px rgba(0,0,0,0.2)'
+                        : '0 2px 6px rgba(0,0,0,0.15)',
+                      transform: active ? 'scale(1.05)' : 'scale(1)',
                     }}
-                    onMouseEnter={e => { if (!active) (e.target as HTMLElement).style.background = 'hsl(40 50% 55% / 0.06)'; }}
-                    onMouseLeave={e => { if (!active) (e.target as HTMLElement).style.background = 'transparent'; }}
                   >
-                    {wall.image ? (
-                      <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                    {/* Thumbnail */}
+                    <div
+                      className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
+                      style={{
+                        boxShadow: active
+                          ? '0 0 0 1px hsl(40 60% 55% / 0.3), 0 2px 8px rgba(0,0,0,0.3)'
+                          : '0 1px 4px rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      {wall.image ? (
                         <img src={wall.image} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg flex-shrink-0" style={{ backgroundColor: wall.color, boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }} />
-                    )}
-                    <span className="truncate">{wall.name}</span>
+                      ) : (
+                        <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
+                      )}
+                    </div>
+                    {/* Name */}
+                    <span
+                      className="text-[10px] font-body tracking-wide truncate w-full text-center"
+                      style={{
+                        color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 50%)',
+                      }}
+                    >
+                      {wall.name}
+                    </span>
                   </button>
                 );
               })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-2">
