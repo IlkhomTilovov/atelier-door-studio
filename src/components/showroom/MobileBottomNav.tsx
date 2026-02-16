@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { ChevronDown } from 'lucide-react';
 
-type Tab = 'eshik' | 'devor' | 'pol';
+type Tab = 'kategoriya' | 'xona' | 'eshik' | 'devor' | 'pol';
 
 /* ── Bottom Sheet ── */
 function BottomSheet({
@@ -81,121 +81,131 @@ function BottomSheet({
   );
 }
 
-/* ── Door Picker (horizontal scroll) ── */
-function DoorPicker() {
-  const { state, allCategories, filteredWalls, filteredDoors, selectCategory, selectDoor, selectWall } = useShowroom();
+/* ── Category Picker ── */
+function CategoryPicker() {
+  const { state, allCategories, selectCategory } = useShowroom();
   const enabledCategories = allCategories.filter(c => c.enabled);
+
+  return (
+    <div>
+      <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-3" style={{ color: 'hsl(40 30% 48%)' }}>
+        Kategoriya
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {enabledCategories.map(cat => {
+          const active = state.selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => selectCategory(cat.id)}
+              className="px-4 py-2.5 rounded-full font-body text-xs tracking-wide transition-all duration-300"
+              style={{
+                background: active ? 'hsl(40 50% 55% / 0.15)' : 'hsl(220 15% 18% / 0.6)',
+                border: active ? '1px solid hsl(40 60% 55% / 0.4)' : '1px solid hsl(40 60% 55% / 0.08)',
+                color: active ? '#D4AF37' : 'hsl(40 15% 55%)',
+              }}
+            >
+              {cat.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Room Design Picker ── */
+function RoomDesignPicker() {
+  const { state, filteredWalls, selectWall } = useShowroom();
+
+  return (
+    <div>
+      <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-3" style={{ color: 'hsl(40 30% 48%)' }}>
+        Xona dizayni
+      </p>
+      <div className="grid grid-cols-4 gap-3">
+        {filteredWalls.length === 0 && (
+          <p className="text-xs col-span-4" style={{ color: 'hsl(40 10% 40%)' }}>Dizayn topilmadi</p>
+        )}
+        {filteredWalls.map(wall => {
+          const active = state.selectedWall === wall.id;
+          return (
+            <button
+              key={wall.id}
+              onClick={() => selectWall(wall.id)}
+              className="flex flex-col items-center gap-1.5 transition-all duration-300"
+            >
+              <div
+                className="w-full aspect-square rounded-xl overflow-hidden"
+                style={{
+                  boxShadow: active
+                    ? '0 0 0 2px #D4AF37, 0 0 12px hsl(40 60% 55% / 0.2)'
+                    : '0 2px 8px rgba(0,0,0,0.3)',
+                  transform: active ? 'scale(1.05)' : undefined,
+                }}
+              >
+                {wall.image ? (
+                  <img src={wall.image} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
+                )}
+              </div>
+              <span
+                className="text-[9px] font-body tracking-wide text-center"
+                style={{ color: active ? '#D4AF37' : 'hsl(40 10% 42%)' }}
+              >
+                {wall.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Door Picker (only door models) ── */
+function DoorPicker() {
+  const { state, filteredDoors, selectDoor } = useShowroom();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Category chips */}
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-2" style={{ color: 'hsl(40 30% 48%)' }}>
-          Kategoriya
-        </p>
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {enabledCategories.map(cat => {
-            const active = state.selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => selectCategory(cat.id)}
-                className="flex-shrink-0 px-4 py-2 rounded-full font-body text-xs tracking-wide transition-all duration-300"
+    <div>
+      <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-3" style={{ color: 'hsl(40 30% 48%)' }}>
+        Eshik modellari
+      </p>
+      <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        {filteredDoors.map(door => {
+          const active = state.selectedDoor === door.id;
+          return (
+            <button
+              key={door.id}
+              onClick={() => selectDoor(door.id)}
+              className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-all duration-300"
+            >
+              <div
+                className="w-14 h-20 rounded-lg flex items-center justify-center overflow-hidden"
                 style={{
-                  background: active ? 'hsl(40 50% 55% / 0.15)' : 'hsl(220 15% 18% / 0.6)',
-                  border: active ? '1px solid hsl(40 60% 55% / 0.4)' : '1px solid hsl(40 60% 55% / 0.08)',
-                  color: active ? '#D4AF37' : 'hsl(40 15% 55%)',
+                  background: 'transparent',
+                  boxShadow: active ? '0 0 0 1.5px #D4AF37' : 'none',
+                  transform: active ? 'scale(1.05)' : undefined,
                 }}
               >
-                {cat.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Wall / Room designs */}
-      {filteredWalls.length > 0 && (
-        <div>
-          <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-2" style={{ color: 'hsl(40 30% 48%)' }}>
-            Xona dizayni
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-            {filteredWalls.map(wall => {
-              const active = state.selectedWall === wall.id;
-              return (
-                <button
-                  key={wall.id}
-                  onClick={() => selectWall(wall.id)}
-                  className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-all duration-300"
-                >
-                  <div
-                    className="w-16 h-16 rounded-xl overflow-hidden"
-                    style={{
-                      boxShadow: active
-                        ? '0 0 0 2px #D4AF37, 0 0 12px hsl(40 60% 55% / 0.2)'
-                        : '0 2px 8px rgba(0,0,0,0.3)',
-                      transform: active ? 'scale(1.05)' : undefined,
-                    }}
-                  >
-                    {wall.image ? (
-                      <img src={wall.image} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
-                    )}
-                  </div>
-                  <span
-                    className="text-[9px] font-body tracking-wide"
-                    style={{ color: active ? '#D4AF37' : 'hsl(40 10% 42%)' }}
-                  >
-                    {wall.name}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Door models */}
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-2" style={{ color: 'hsl(40 30% 48%)' }}>
-          Eshik modellari
-        </p>
-        <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {filteredDoors.map(door => {
-            const active = state.selectedDoor === door.id;
-            return (
-              <button
-                key={door.id}
-                onClick={() => selectDoor(door.id)}
-                className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-all duration-300"
+                {door.image ? (
+                  <img src={door.image} alt={door.name} className="h-full w-auto object-contain" />
+                ) : (
+                  <span className="font-display text-lg" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
+                )}
+              </div>
+              <span
+                className="text-[9px] font-body tracking-wide max-w-[56px] truncate"
+                style={{ color: active ? '#D4AF37' : 'hsl(40 10% 42%)' }}
               >
-                <div
-                  className="w-14 h-20 rounded-lg flex items-center justify-center overflow-hidden"
-                  style={{
-                    background: 'transparent',
-                    boxShadow: active ? '0 0 0 1.5px #D4AF37' : 'none',
-                    transform: active ? 'scale(1.05)' : undefined,
-                  }}
-                >
-                  {door.image ? (
-                    <img src={door.image} alt={door.name} className="h-full w-auto object-contain" />
-                  ) : (
-                    <span className="font-display text-lg" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
-                  )}
-                </div>
-                <span
-                  className="text-[9px] font-body tracking-wide max-w-[56px] truncate"
-                  style={{ color: active ? '#D4AF37' : 'hsl(40 10% 42%)' }}
-                >
-                  {door.name}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                {door.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -297,6 +307,29 @@ function FloorPicker() {
 }
 
 /* ── Tab icon components ── */
+function CategoryIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#D4AF37' : 'hsl(40,15%,50%)'} strokeWidth="1.5">
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </svg>
+  );
+}
+
+function RoomIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#D4AF37' : 'hsl(40,15%,50%)'} strokeWidth="1.5">
+      <rect x="2" y="4" width="20" height="16" rx="1" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <line x1="8" y1="4" x2="8" y2="12" />
+      <line x1="16" y1="4" x2="16" y2="12" />
+      <line x1="12" y1="12" x2="12" y2="20" />
+    </svg>
+  );
+}
+
 function DoorIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#D4AF37' : 'hsl(40,15%,50%)'} strokeWidth="1.5">
@@ -309,11 +342,8 @@ function DoorIcon({ active }: { active: boolean }) {
 function WallIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#D4AF37' : 'hsl(40,15%,50%)'} strokeWidth="1.5">
-      <rect x="2" y="4" width="20" height="16" rx="1" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <line x1="8" y1="4" x2="8" y2="12" />
-      <line x1="16" y1="4" x2="16" y2="12" />
-      <line x1="12" y1="12" x2="12" y2="20" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3 C12 3 7 8 7 12 C7 16 12 21 12 21 C12 21 17 16 17 12 C17 8 12 3 12 3Z" />
     </svg>
   );
 }
@@ -332,12 +362,16 @@ export default function MobileBottomNav() {
   const [activeSheet, setActiveSheet] = useState<Tab | null>(null);
 
   const tabs: { key: Tab; label: string; Icon: React.FC<{ active: boolean }> }[] = [
+    { key: 'kategoriya', label: 'Kategoriya', Icon: CategoryIcon },
+    { key: 'xona', label: 'Xona', Icon: RoomIcon },
     { key: 'eshik', label: 'Eshik', Icon: DoorIcon },
-    { key: 'devor', label: 'Devor', Icon: WallIcon },
+    { key: 'devor', label: 'Rang', Icon: WallIcon },
     { key: 'pol', label: 'Pol', Icon: FloorIcon },
   ];
 
   const sheetTitle: Record<Tab, string> = {
+    kategoriya: 'Kategoriya tanlash',
+    xona: 'Xona dizayni',
     eshik: 'Eshik tanlash',
     devor: 'Eshik rangi',
     pol: 'Pol materiali',
@@ -350,6 +384,22 @@ export default function MobileBottomNav() {
   return (
     <>
       {/* Bottom sheets */}
+      <BottomSheet
+        open={activeSheet === 'kategoriya'}
+        onClose={() => setActiveSheet(null)}
+        title={sheetTitle.kategoriya}
+      >
+        <CategoryPicker />
+      </BottomSheet>
+
+      <BottomSheet
+        open={activeSheet === 'xona'}
+        onClose={() => setActiveSheet(null)}
+        title={sheetTitle.xona}
+      >
+        <RoomDesignPicker />
+      </BottomSheet>
+
       <BottomSheet
         open={activeSheet === 'eshik'}
         onClose={() => setActiveSheet(null)}
@@ -392,12 +442,12 @@ export default function MobileBottomNav() {
             <button
               key={key}
               onClick={() => toggleSheet(key)}
-              className="flex flex-col items-center gap-1 px-6 py-2 transition-all duration-300"
+              className="flex flex-col items-center gap-0.5 px-3 py-2 transition-all duration-300"
               style={{ opacity: active ? 1 : 0.6 }}
             >
               <Icon active={active} />
               <span
-                className="font-body text-[10px] tracking-wider"
+                className="font-body text-[9px] tracking-wider"
                 style={{
                   color: active ? '#D4AF37' : 'hsl(40 15% 50%)',
                   fontWeight: active ? 500 : 400,
@@ -405,13 +455,6 @@ export default function MobileBottomNav() {
               >
                 {label}
               </span>
-              {/* Active indicator dot */}
-              {active && (
-                <div
-                  className="w-1 h-1 rounded-full"
-                  style={{ background: '#D4AF37' }}
-                />
-              )}
             </button>
           );
         })}
@@ -419,3 +462,4 @@ export default function MobileBottomNav() {
     </>
   );
 }
+
