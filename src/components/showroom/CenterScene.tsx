@@ -41,7 +41,7 @@ export default function CenterScene() {
             className="w-full transition-showroom"
             style={{
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
               objectPosition: 'center bottom',
             }}
           />
