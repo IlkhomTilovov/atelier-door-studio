@@ -33,16 +33,21 @@ export default function CenterScene() {
         style={{
           bottom: isMobile ? '18%' : '16%',
           backgroundColor: wallColor,
-          ...(wall?.image
-            ? {
-                backgroundImage: `url(${wall.image})`,
-                backgroundSize: isMobile ? 'cover' : 'cover',
-                backgroundPosition: 'center center',
-                backgroundRepeat: 'no-repeat',
-              }
-            : {}),
         }}
-      />
+      >
+        {wall?.image && (
+          <img
+            src={wall.image}
+            alt=""
+            className="w-full transition-showroom"
+            style={{
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'center bottom',
+            }}
+          />
+        )}
+      </div>
 
       {/* Wall moldings (only when no wall image) */}
       {!wall?.image && (
