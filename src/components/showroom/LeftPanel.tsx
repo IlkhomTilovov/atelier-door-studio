@@ -17,6 +17,102 @@ function useClickOutside(ref: React.RefObject<HTMLElement>, handler: () => void)
   }, [ref, handler]);
 }
 
+/* ── Single-item swipe carousel ── */
+function RoomDesignSwiper({
+  walls,
+  selectedId,
+  onSelect,
+}: {
+  walls: { id: string; name: string; color: string; image?: string | null }[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const idx = Math.max(0, walls.findIndex(w => w.id === selectedId));
+  const dragRef = useRef({ startX: 0, dragging: false });
+
+  const go = useCallback(
+    (dir: number) => {
+      const next = idx + dir;
+      if (next >= 0 && next < walls.length) onSelect(walls[next].id);
+    },
+    [idx, walls, onSelect],
+  );
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragRef.current = { startX: e.clientX, dragging: true };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current.dragging) return;
+    const diff = e.clientX - dragRef.current.startX;
+    dragRef.current.dragging = false;
+    if (Math.abs(diff) > 30) go(diff < 0 ? 1 : -1);
+  };
+
+  if (walls.length === 0) {
+    return (
+      <p className="text-xs text-center py-3" style={{ color: 'hsl(40 10% 40%)' }}>
+        Dizayn topilmadi
+      </p>
+    );
+  }
+
+  const wall = walls[idx];
+
+  return (
+    <div
+      className="select-none touch-pan-y"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      style={{ cursor: 'grab' }}
+    >
+      {/* Card */}
+      <div
+        key={wall.id}
+        className="mx-auto flex flex-col items-center gap-2 rounded-2xl p-3 transition-all duration-400 animate-fade-in"
+        style={{
+          width: '120px',
+          background: 'linear-gradient(135deg, hsl(40 50% 55% / 0.1), hsl(40 45% 50% / 0.03))',
+          border: '1.5px solid hsl(40 60% 55% / 0.4)',
+          boxShadow: '0 0 20px hsl(40 60% 55% / 0.1), 0 6px 20px rgba(0,0,0,0.25)',
+        }}
+      >
+        <div
+          className="w-16 h-16 rounded-xl overflow-hidden"
+          style={{ boxShadow: '0 0 0 1px hsl(40 60% 55% / 0.25), 0 2px 8px rgba(0,0,0,0.3)' }}
+        >
+          {wall.image ? (
+            <img src={wall.image} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
+          )}
+        </div>
+        <span className="text-xs font-body tracking-wide" style={{ color: 'hsl(40 55% 72%)' }}>
+          {wall.name}
+        </span>
+      </div>
+
+      {/* Dots */}
+      {walls.length > 1 && (
+        <div className="flex justify-center gap-1.5 mt-3">
+          {walls.map((w, i) => (
+            <button
+              key={w.id}
+              onClick={(e) => { e.stopPropagation(); onSelect(w.id); }}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: i === idx ? '14px' : '5px',
+                height: '5px',
+                background: i === idx ? 'hsl(40 60% 58%)' : 'hsl(40 20% 35% / 0.5)',
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LeftPanel() {
   const { state, allCategories, filteredWalls, filteredDoors, selectCategory, selectDoor, selectWall } = useShowroom();
   const enabledCategories = allCategories.filter(c => c.enabled);
@@ -24,35 +120,18 @@ export default function LeftPanel() {
 
   const [catOpen, setCatOpen] = useState(false);
   const catRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(catRef as React.RefObject<HTMLElement>, () => setCatOpen(false));
 
   const selectedCat = enabledCategories.find(c => c.id === state.selectedCategory);
-  const selectedWall = filteredWalls.find(w => w.id === state.selectedWall);
 
-  // Scroll active carousel item into view
-  useEffect(() => {
-    if (!carouselRef.current || !state.selectedWall) return;
-    const active = carouselRef.current.querySelector(`[data-wall-id="${state.selectedWall}"]`) as HTMLElement;
-    if (active) {
-      active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
-  }, [state.selectedWall, filteredWalls]);
-
-  const scrollCarousel = useCallback((dir: number) => {
-    if (!carouselRef.current) return;
-    carouselRef.current.scrollBy({ left: dir * 100, behavior: 'smooth' });
-  }, []);
-
-  // Category keyboard nav
   const handleCatKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') return setCatOpen(false);
     if (!catOpen && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); return setCatOpen(true); }
     if (!catOpen) return;
-    const idx = enabledCategories.findIndex(c => c.id === state.selectedCategory);
-    if (e.key === 'ArrowDown') { e.preventDefault(); selectCategory(enabledCategories[(idx + 1) % enabledCategories.length].id); }
-    if (e.key === 'ArrowUp') { e.preventDefault(); selectCategory(enabledCategories[(idx - 1 + enabledCategories.length) % enabledCategories.length].id); }
+    const i = enabledCategories.findIndex(c => c.id === state.selectedCategory);
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectCategory(enabledCategories[(i + 1) % enabledCategories.length].id); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); selectCategory(enabledCategories[(i - 1 + enabledCategories.length) % enabledCategories.length].id); }
     if (e.key === 'Enter') setCatOpen(false);
   };
 
@@ -104,10 +183,7 @@ export default function LeftPanel() {
             />
           </button>
           {catOpen && (
-            <div
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl overflow-hidden py-1 animate-fade-in"
-              style={dropdownStyle}
-            >
+            <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl overflow-hidden py-1 animate-fade-in" style={dropdownStyle}>
               {enabledCategories.map(cat => {
                 const active = state.selectedCategory === cat.id;
                 return (
@@ -138,108 +214,16 @@ export default function LeftPanel() {
           <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
         </div>
 
-        {/* Room Design Carousel */}
+        {/* Room Design Swiper */}
         <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-3" style={{ color: 'hsl(40 30% 50%)' }}>
           Xona dizayni
         </p>
 
-        {filteredWalls.length === 0 ? (
-          <p className="text-xs text-center py-3 mb-4" style={{ color: 'hsl(40 10% 40%)' }}>
-            {!state.selectedCategory ? 'Avval kategoriya tanlang' : 'Bu kategoriyada dizayn yo\'q'}
-          </p>
+        {!state.selectedCategory ? (
+          <p className="text-xs text-center py-3 mb-4" style={{ color: 'hsl(40 10% 40%)' }}>Avval kategoriya tanlang</p>
         ) : (
-          <div className="relative mb-5">
-            {/* Arrows */}
-            {filteredWalls.length > 2 && (
-              <>
-                <button
-                  onClick={() => scrollCarousel(-1)}
-                  className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                  style={{
-                    background: 'hsl(220 15% 16% / 0.8)',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid hsl(40 60% 55% / 0.15)',
-                    color: 'hsl(40 40% 65%)',
-                  }}
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => scrollCarousel(1)}
-                  className="absolute -right-1 top-1/2 -translate-y-1/2 z-10 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                  style={{
-                    background: 'hsl(220 15% 16% / 0.8)',
-                    backdropFilter: 'blur(8px)',
-                    border: '1px solid hsl(40 60% 55% / 0.15)',
-                    color: 'hsl(40 40% 65%)',
-                  }}
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </>
-            )}
-
-            {/* Carousel track */}
-            <div
-              ref={carouselRef}
-              className="flex gap-2.5 overflow-x-auto px-1 py-2 snap-x snap-mandatory"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              <style>{`div[data-carousel-track]::-webkit-scrollbar { display: none; }`}</style>
-              {filteredWalls.map(wall => {
-                const active = state.selectedWall === wall.id;
-                return (
-                  <button
-                    key={wall.id}
-                    data-wall-id={wall.id}
-                    onClick={() => selectWall(wall.id)}
-                    className="flex-shrink-0 snap-center flex flex-col items-center gap-1.5 rounded-xl p-2 transition-all duration-400 outline-none"
-                    style={{
-                      width: '72px',
-                      background: active
-                        ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.12), hsl(40 45% 50% / 0.04))'
-                        : 'hsl(220 15% 18% / 0.3)',
-                      border: active
-                        ? '1.5px solid hsl(40 60% 55% / 0.45)'
-                        : '1.5px solid hsl(0 0% 100% / 0.04)',
-                      boxShadow: active
-                        ? '0 0 16px hsl(40 60% 55% / 0.12), 0 4px 12px rgba(0,0,0,0.2)'
-                        : '0 2px 6px rgba(0,0,0,0.15)',
-                      transform: active ? 'scale(1.05)' : 'scale(1)',
-                    }}
-                  >
-                    {/* Thumbnail */}
-                    <div
-                      className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
-                      style={{
-                        boxShadow: active
-                          ? '0 0 0 1px hsl(40 60% 55% / 0.3), 0 2px 8px rgba(0,0,0,0.3)'
-                          : '0 1px 4px rgba(0,0,0,0.3)',
-                      }}
-                    >
-                      {wall.image ? (
-                        <img src={wall.image} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
-                      )}
-                    </div>
-                    {/* Name */}
-                    <span
-                      className="text-[10px] font-body tracking-wide truncate w-full text-center"
-                      style={{
-                        color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 50%)',
-                      }}
-                    >
-                      {wall.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="mb-5">
+            <RoomDesignSwiper walls={filteredWalls} selectedId={state.selectedWall} onSelect={selectWall} />
           </div>
         )}
 
@@ -291,7 +275,7 @@ export default function LeftPanel() {
           backdropFilter: 'blur(8px)',
           border: '1px solid hsl(0 0% 100% / 0.06)',
           borderLeft: 'none',
-          color: 'hsl(40 30% 60% / 0.7)',
+          color: 'hsl(30 30% 60% / 0.7)',
           opacity: 0.6,
         }}
       >
