@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { useIsTablet } from '@/hooks/use-mobile';
 
 function useClickOutside(ref: React.RefObject<HTMLElement>, handler: () => void) {
   useEffect(() => {
@@ -311,11 +312,11 @@ export default function LeftPanel() {
         className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-hidden transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
       >
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <h1 className="font-display text-2xl tracking-[0.3em]" style={{ color: 'hsl(40 55% 68%)' }}>
+        <div className="mb-6 text-center">
+          <h1 className="font-display tracking-[0.25em] tablet-title" style={{ color: 'hsl(40 55% 68%)', fontSize: 'clamp(1rem, 2vw, 1.5rem)' }}>
             SHOWROOM
           </h1>
-          <div className="w-12 h-px mx-auto mt-3" style={{ background: 'linear-gradient(90deg, transparent, hsl(40 60% 55% / 0.5), transparent)' }} />
+          <div className="w-10 h-px mx-auto mt-2" style={{ background: 'linear-gradient(90deg, transparent, hsl(40 60% 55% / 0.5), transparent)' }} />
         </div>
 
         {/* Category Dropdown */}
