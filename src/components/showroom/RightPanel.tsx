@@ -33,26 +33,6 @@ export default function RightPanel() {
         <div
           className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-auto transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
         >
-          {/* ── Order Button ── */}
-          {door && (
-            <>
-              <button
-                onClick={() => setOrderOpen(true)}
-                className="w-full py-3 rounded-xl font-body text-sm tracking-wide flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 mb-5"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(40 55% 42%), hsl(40 65% 55%))',
-                  color: 'hsl(220 20% 10%)',
-                  boxShadow: '0 4px 20px hsl(40 60% 50% / 0.3), 0 0 0 1px hsl(40 60% 55% / 0.1)',
-                  fontWeight: 500,
-                }}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Buyurtma berish
-              </button>
-              <GlassDivider />
-            </>
-          )}
-
           {/* ── Floor Material ── */}
           <GlassSectionHeader label="Pol materiali" />
           <div className="grid grid-cols-3 gap-2.5">
@@ -109,6 +89,26 @@ export default function RightPanel() {
               );
             })}
           </div>
+
+          {/* ── Order Button (bottom) ── */}
+          {door && (
+            <>
+              <GlassDivider />
+              <button
+                onClick={() => setOrderOpen(true)}
+                className="w-full py-3 rounded-xl font-body text-sm tracking-wide flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 mt-auto"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(40 55% 42%), hsl(40 65% 55%))',
+                  color: 'hsl(220 20% 10%)',
+                  boxShadow: '0 4px 20px hsl(40 60% 50% / 0.3), 0 0 0 1px hsl(40 60% 55% / 0.1)',
+                  fontWeight: 500,
+                }}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Buyurtma berish
+              </button>
+            </>
+          )}
         </div>
       </div>
 
