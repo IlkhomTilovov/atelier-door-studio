@@ -113,6 +113,146 @@ function RoomDesignSwiper({
   );
 }
 
+/* ── Door Model Carousel ── */
+function DoorCarousel({
+  doors,
+  selectedId,
+  onSelect,
+}: {
+  doors: { id: string; name: string; image?: string | null; panelCount?: number }[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef({ startX: 0, scrollLeft: 0, dragging: false });
+
+  const scrollToItem = useCallback((id: string) => {
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    const idx = doors.findIndex(d => d.id === id);
+    if (idx < 0) return;
+    const itemWidth = 140;
+    const gap = 12;
+    const center = container.clientWidth / 2 - itemWidth / 2;
+    container.scrollTo({ left: idx * (itemWidth + gap) - center + (itemWidth + gap) / 2 - itemWidth / 2, behavior: 'smooth' });
+  }, [doors]);
+
+  // Scroll to selected on mount & selection change
+  useEffect(() => {
+    if (selectedId) setTimeout(() => scrollToItem(selectedId), 50);
+  }, [selectedId, scrollToItem]);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!scrollRef.current) return;
+    dragState.current = { startX: e.clientX, scrollLeft: scrollRef.current.scrollLeft, dragging: true };
+    scrollRef.current.style.cursor = 'grabbing';
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragState.current.dragging || !scrollRef.current) return;
+    const dx = e.clientX - dragState.current.startX;
+    scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    dragState.current.dragging = false;
+    if (scrollRef.current) scrollRef.current.style.cursor = 'grab';
+  };
+
+  if (doors.length === 0) {
+    return (
+      <p className="text-xs text-center py-4" style={{ color: 'hsl(40 10% 40%)' }}>
+        Bu xona uchun eshik tayinlanmagan
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0">
+      <div
+        ref={scrollRef}
+        className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory select-none touch-pan-x"
+        style={{ cursor: 'grab', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      >
+        <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+        {/* Left spacer for centering */}
+        <div className="flex-shrink-0" style={{ width: 'calc(50% - 70px)' }} />
+        {doors.map(door => {
+          const active = selectedId === door.id;
+          return (
+            <button
+              key={door.id}
+              onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
+              className="flex-shrink-0 snap-center flex flex-col items-center rounded-2xl overflow-hidden transition-all duration-300"
+              style={{
+                width: '140px',
+                transform: active ? 'scale(1.05)' : 'scale(0.92)',
+                opacity: active ? 1 : 0.65,
+                background: active
+                  ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.12), hsl(40 45% 50% / 0.04))'
+                  : 'hsl(220 15% 16% / 0.4)',
+                border: active
+                  ? '1.5px solid hsl(40 60% 55% / 0.5)'
+                  : '1px solid hsl(40 60% 55% / 0.08)',
+                boxShadow: active
+                  ? '0 0 24px hsl(40 60% 55% / 0.15), 0 8px 24px rgba(0,0,0,0.3)'
+                  : '0 2px 8px rgba(0,0,0,0.2)',
+              }}
+            >
+              {/* Image */}
+              <div className="w-full overflow-hidden" style={{ height: '100px' }}>
+                {door.image ? (
+                  <img src={door.image} alt={door.name} className="w-full h-full object-cover" draggable={false} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center" style={{ background: 'hsl(220 15% 20%)' }}>
+                    <span className="font-display text-2xl" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
+                  </div>
+                )}
+              </div>
+              {/* Info */}
+              <div className="w-full px-2.5 py-2 text-center">
+                <p className="font-body text-xs font-medium tracking-wide truncate" style={{ color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 55%)' }}>
+                  {door.name}
+                </p>
+                {door.panelCount && (
+                  <p className="font-body text-[9px] mt-0.5" style={{ color: 'hsl(40 15% 42%)' }}>
+                    {door.panelCount} panel
+                  </p>
+                )}
+              </div>
+            </button>
+          );
+        })}
+        {/* Right spacer for centering */}
+        <div className="flex-shrink-0" style={{ width: 'calc(50% - 70px)' }} />
+      </div>
+
+      {/* Dots indicator */}
+      {doors.length > 1 && (
+        <div className="flex justify-center gap-1.5 mt-1">
+          {doors.map(d => {
+            const active = selectedId === d.id;
+            return (
+              <button
+                key={d.id}
+                onClick={() => { onSelect(d.id); scrollToItem(d.id); }}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: active ? '14px' : '5px',
+                  height: '5px',
+                  background: active ? 'hsl(40 60% 58%)' : 'hsl(40 20% 35% / 0.5)',
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LeftPanel() {
   const { state, allCategories, filteredWalls, filteredDoors, selectCategory, selectDoor, selectWall } = useShowroom();
   const enabledCategories = allCategories.filter(c => c.enabled);
@@ -234,35 +374,11 @@ export default function LeftPanel() {
           <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
         </div>
 
-        {/* Door Models */}
-        <p className="text-[10px] uppercase tracking-[0.25em] font-body mt-4 mb-4" style={{ color: 'hsl(40 30% 50%)' }}>
+        {/* Door Models Carousel */}
+        <p className="text-[10px] uppercase tracking-[0.25em] font-body mt-4 mb-3" style={{ color: 'hsl(40 30% 50%)' }}>
           Eshik modellari
         </p>
-        <div className="flex-1 space-y-1 overflow-auto glass-scrollbar">
-          {filteredDoors.length === 0 && (
-            <p className="text-xs text-center py-4" style={{ color: 'hsl(40 10% 40%)' }}>
-              Bu xona uchun eshik tayinlanmagan
-            </p>
-          )}
-          {filteredDoors.map(door => {
-            const active = state.selectedDoor === door.id;
-            return (
-              <button
-                key={door.id}
-                onClick={() => selectDoor(door.id)}
-                className="w-full text-left px-4 py-3 rounded-lg font-body text-sm tracking-wide transition-all duration-500"
-                style={{
-                  background: active ? 'hsl(40 50% 55% / 0.1)' : 'transparent',
-                  color: active ? 'hsl(40 50% 75%)' : 'hsl(40 10% 55%)',
-                  borderLeft: active ? '2px solid hsl(40 60% 55% / 0.6)' : '2px solid transparent',
-                  boxShadow: active ? '0 0 12px hsl(40 60% 55% / 0.06)' : 'none',
-                }}
-              >
-                {door.name}
-              </button>
-            );
-          })}
-        </div>
+        <DoorCarousel doors={filteredDoors} selectedId={state.selectedDoor} onSelect={selectDoor} />
       </div>
 
       {/* Toggle button */}
