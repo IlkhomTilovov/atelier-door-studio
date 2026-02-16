@@ -308,8 +308,7 @@ export default function LeftPanel() {
   return (
     <div className="relative flex items-stretch">
       <div
-        className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-hidden transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'px-5 opacity-100'}`}
-        style={{ width: collapsed ? '0px' : '240px' }}
+        className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-hidden transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
       >
         {/* Logo */}
         <div className="mb-8 text-center">
@@ -402,7 +401,7 @@ export default function LeftPanel() {
         onClick={() => setCollapsed(c => !c)}
         className="absolute top-1/2 -translate-y-1/2 z-40 w-6 h-12 rounded-r-md flex items-center justify-center transition-all duration-500 hover:opacity-100"
         style={{
-          left: collapsed ? '0px' : '240px',
+          left: collapsed ? '0px' : '100%',
           background: 'hsl(220 15% 15% / 0.35)',
           backdropFilter: 'blur(8px)',
           border: '1px solid hsl(0 0% 100% / 0.06)',
