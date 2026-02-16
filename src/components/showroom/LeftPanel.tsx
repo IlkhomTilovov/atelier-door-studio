@@ -69,17 +69,17 @@ function RoomDesignSwiper({
       {/* Card */}
       <div
         key={wall.id}
-        className="mx-auto flex flex-col items-center gap-2 rounded-2xl p-3 transition-all duration-400 animate-fade-in"
+        className="mx-auto flex flex-col items-center gap-2 rounded-2xl overflow-hidden transition-all duration-400 animate-fade-in"
         style={{
-          width: '120px',
+          width: '160px',
           background: 'linear-gradient(135deg, hsl(40 50% 55% / 0.1), hsl(40 45% 50% / 0.03))',
           border: '1.5px solid hsl(40 60% 55% / 0.4)',
           boxShadow: '0 0 20px hsl(40 60% 55% / 0.1), 0 6px 20px rgba(0,0,0,0.25)',
         }}
       >
         <div
-          className="w-16 h-16 rounded-xl overflow-hidden"
-          style={{ boxShadow: '0 0 0 1px hsl(40 60% 55% / 0.25), 0 2px 8px rgba(0,0,0,0.3)' }}
+          className="w-full overflow-hidden"
+          style={{ height: '120px' }}
         >
           {wall.image ? (
             <img src={wall.image} alt="" className="w-full h-full object-cover" />
@@ -87,7 +87,7 @@ function RoomDesignSwiper({
             <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
           )}
         </div>
-        <span className="text-xs font-body tracking-wide" style={{ color: 'hsl(40 55% 72%)' }}>
+        <span className="text-xs font-body tracking-wide pb-2.5" style={{ color: 'hsl(40 55% 72%)' }}>
           {wall.name}
         </span>
       </div>
