@@ -1,9 +1,10 @@
 import { useShowroom } from '@/context/ShowroomContext';
 import { TextureScale } from '@/types/showroom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
 
 export default function CenterScene() {
   const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor } = useShowroom();
 
   const door = getSelectedDoor();
@@ -73,7 +74,8 @@ export default function CenterScene() {
         className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
         style={{
           bottom: '18%',
-          height: isMobile ? '33%' : '62%',
+          height: isMobile ? '33%' : isTablet ? '52%' : '62%',
+          maxWidth: isTablet ? '420px' : undefined,
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
