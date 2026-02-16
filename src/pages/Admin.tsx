@@ -48,7 +48,7 @@ function DeleteConfirm({ open, onClose, onConfirm, name }: { open: boolean; onCl
         <p className="text-sm text-muted-foreground mb-6"><span className="text-foreground font-medium">"{name}"</span> ni o'chirmoqchimisiz?</p>
         <div className="flex gap-3 justify-center">
           <button onClick={onClose} className="px-5 py-2.5 rounded-lg font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-200">Bekor qilish</button>
-          <button onClick={() => { onConfirm(); onClose(); }} className="px-5 py-2.5 rounded-lg font-body text-sm bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-all duration-200">O'chirish</button>
+          <button onClick={onConfirm} className="px-5 py-2.5 rounded-lg font-body text-sm bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-all duration-200">O'chirish</button>
         </div>
       </div>
     </div>
@@ -192,7 +192,8 @@ function CategoriesAdmin() {
   };
 
   const toggleCategory = async (id: string, enabled: boolean) => {
-    await supabase.from('room_categories').update({ enabled: !enabled }).eq('id', id);
+    const { error } = await supabase.from('room_categories').update({ enabled: !enabled }).eq('id', id);
+    if (error) toast.error(error.message);
   };
 
   const handleDelete = async () => {
