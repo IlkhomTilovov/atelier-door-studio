@@ -167,33 +167,16 @@ function DoorCarousel({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Showcase stage with premium background */}
-      <div
-        className="relative rounded-2xl overflow-hidden"
-        style={{
-          background: 'linear-gradient(180deg, #141821 0%, #1c2230 100%)',
-          padding: '16px 0',
-        }}
-      >
-        {/* Radial spotlight behind active area */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse 60% 80% at center 45%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.3) 70%)',
-          }}
-        />
-        {/* Edge fade masks */}
-        <div className="absolute inset-y-0 left-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(90deg, #141821, transparent)' }} />
-        <div className="absolute inset-y-0 right-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(270deg, #1c2230, transparent)' }} />
-
+      <div className="relative overflow-hidden">
         <div
           ref={scrollRef}
-          className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory select-none touch-pan-x z-[1]"
+          className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory select-none touch-pan-x"
           style={{ cursor: 'grab', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
         >
-          <style>{`.door-scroll::-webkit-scrollbar { display: none; }`}</style>
+          <style>{`div::-webkit-scrollbar { display: none; }`}</style>
           {/* Spacers for centering */}
           <div className="flex-shrink-0" style={{ width: 'calc(50% - 100px)' }} />
           {doors.map(door => {
