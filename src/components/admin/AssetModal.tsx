@@ -246,14 +246,6 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className={labelCls}>Molding turi</label>
-                    <select value={moldingType} onChange={e => setMoldingType(e.target.value as any)} className={selectCls}>
-                      <option value="classic">Klassik</option>
-                      <option value="modern">Zamonaviy</option>
-                      <option value="ornate">Bezakli</option>
-                    </select>
-                  </div>
                 </>
               )}
 
