@@ -35,8 +35,8 @@ export default function CenterScene() {
         className="absolute transition-showroom"
         style={isMobile ? {
           left: 0, right: 0,
-          top: '8%',
-          bottom: '8%',
+          top: '0%',
+          bottom: '16%',
         } : {
           inset: 0,
         }}
