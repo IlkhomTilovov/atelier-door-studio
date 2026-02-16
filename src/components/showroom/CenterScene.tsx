@@ -39,7 +39,7 @@ export default function CenterScene() {
           className="absolute inset-0 transition-showroom"
           style={{
             bottom: '18%',
-            top: isMobile ? '-12%' : '0',
+            top: isMobile ? '-22%' : '0',
           }}
         >
           {wall?.image ? (
