@@ -44,6 +44,7 @@ function BottomSheet({
         style={{
           transform: open ? 'translateY(0)' : 'translateY(100%)',
           maxHeight: '60vh',
+          bottom: '64px',
           borderRadius: '24px 24px 0 0',
           background: 'linear-gradient(180deg, hsl(220 20% 13% / 0.97) 0%, hsl(220 18% 10% / 0.99) 100%)',
           border: '1px solid hsl(40 60% 55% / 0.1)',
