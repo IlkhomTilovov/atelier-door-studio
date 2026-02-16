@@ -366,7 +366,6 @@ export default function MobileBottomNav() {
     { key: 'kategoriya', label: 'Kategoriya', Icon: CategoryIcon },
     { key: 'xona', label: 'Xona', Icon: RoomIcon },
     { key: 'eshik', label: 'Eshik', Icon: DoorIcon },
-    { key: 'devor', label: 'Rang', Icon: WallIcon },
     { key: 'pol', label: 'Pol', Icon: FloorIcon },
   ];
 
@@ -409,13 +408,6 @@ export default function MobileBottomNav() {
         <DoorPicker />
       </BottomSheet>
 
-      <BottomSheet
-        open={activeSheet === 'devor'}
-        onClose={() => setActiveSheet(null)}
-        title={sheetTitle.devor}
-      >
-        <ColorPicker />
-      </BottomSheet>
 
       <BottomSheet
         open={activeSheet === 'pol'}
