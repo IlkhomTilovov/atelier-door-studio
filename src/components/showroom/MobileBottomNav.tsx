@@ -442,12 +442,12 @@ export default function MobileBottomNav() {
             <button
               key={key}
               onClick={() => toggleSheet(key)}
-              className="flex flex-col items-center gap-0.5 px-3 py-2 transition-all duration-300"
+              className="flex flex-col items-center gap-0.5 flex-1 py-2 transition-all duration-300 min-w-0"
               style={{ opacity: active ? 1 : 0.6 }}
             >
               <Icon active={active} />
               <span
-                className="font-body text-[9px] tracking-wider"
+                className="font-body text-[9px] tracking-wide whitespace-nowrap"
                 style={{
                   color: active ? '#D4AF37' : 'hsl(40 15% 50%)',
                   fontWeight: active ? 500 : 400,
