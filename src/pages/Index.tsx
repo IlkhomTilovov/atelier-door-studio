@@ -19,15 +19,15 @@ const Index = () => {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden select-none">
-      {/* Full-width scene — never shrunk */}
+    <div className="relative h-screen w-screen overflow-hidden select-none">
+      {/* Full-bleed scene behind everything */}
       <CenterScene />
 
-      {/* Sidebars overlay on top */}
-      <div className="absolute top-0 left-0 h-full z-10 flex items-stretch py-4 pl-4" style={{ width: '320px' }}>
+      {/* Floating glass sidebars */}
+      <div className="absolute inset-y-0 left-0 z-30 flex items-stretch py-4 pl-4">
         <LeftPanel />
       </div>
-      <div className="absolute top-0 right-0 h-full z-10 flex items-stretch py-4 pr-4" style={{ width: '320px' }}>
+      <div className="absolute inset-y-0 right-0 z-30 flex items-stretch py-4 pr-4">
         <RightPanel />
       </div>
     </div>
