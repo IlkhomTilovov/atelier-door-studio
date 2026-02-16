@@ -306,7 +306,7 @@ export default function LeftPanel() {
   };
 
   return (
-    <div className="relative flex items-stretch">
+    <div className="relative flex items-stretch w-full overflow-hidden">
       <div
         className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-hidden transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
       >
