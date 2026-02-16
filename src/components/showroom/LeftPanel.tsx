@@ -167,25 +167,24 @@ function DoorCarousel({
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Showcase stage with premium background */}
-      <div className="relative overflow-hidden">
+      <div className="relative flex-1 min-h-0 overflow-hidden">
         <div
           ref={scrollRef}
-          className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory select-none touch-pan-x"
+          className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory select-none touch-pan-x h-full"
           style={{ cursor: 'grab', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
         >
           <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-          {/* Spacers for centering */}
-          <div className="flex-shrink-0" style={{ width: 'calc(50% - 100px)' }} />
+          <div className="flex-shrink-0" style={{ width: 'calc(50% - 80px)' }} />
           {doors.map(door => {
             const active = selectedId === door.id;
             return (
               <button
                 key={door.id}
                 onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
-                className="flex-shrink-0 snap-center flex flex-col items-center outline-none"
+                className="flex-shrink-0 snap-center flex flex-col items-center outline-none h-full"
                 style={{
                   width: '160px',
                   background: 'transparent',
@@ -196,10 +195,8 @@ function DoorCarousel({
                   opacity: active ? 1 : 0.4,
                 }}
               >
-                {/* Door image — tall, clean, no wrapper styling */}
                 <div
-                  className="w-full flex items-center justify-center"
-                  style={{ height: '280px' }}
+                  className="w-full flex-1 min-h-0 flex items-center justify-center"
                 >
                   {door.image ? (
                     <img
@@ -244,7 +241,7 @@ function DoorCarousel({
               </button>
             );
           })}
-          <div className="flex-shrink-0" style={{ width: 'calc(50% - 100px)' }} />
+          <div className="flex-shrink-0" style={{ width: 'calc(50% - 80px)' }} />
         </div>
       </div>
 
