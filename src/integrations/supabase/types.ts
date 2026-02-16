@@ -188,6 +188,60 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          address: string | null
+          comment: string | null
+          created_at: string
+          door_model_id: string | null
+          full_name: string
+          id: string
+          panel_count: number
+          phone: string
+          room_design_id: string | null
+          status: string
+        }
+        Insert: {
+          address?: string | null
+          comment?: string | null
+          created_at?: string
+          door_model_id?: string | null
+          full_name: string
+          id?: string
+          panel_count?: number
+          phone: string
+          room_design_id?: string | null
+          status?: string
+        }
+        Update: {
+          address?: string | null
+          comment?: string | null
+          created_at?: string
+          door_model_id?: string | null
+          full_name?: string
+          id?: string
+          panel_count?: number
+          phone?: string
+          room_design_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_door_model_id_fkey"
+            columns: ["door_model_id"]
+            isOneToOne: false
+            referencedRelation: "doors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_room_design_id_fkey"
+            columns: ["room_design_id"]
+            isOneToOne: false
+            referencedRelation: "walls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       room_categories: {
         Row: {
           created_at: string
