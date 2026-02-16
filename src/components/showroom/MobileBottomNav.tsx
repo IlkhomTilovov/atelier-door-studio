@@ -378,7 +378,7 @@ export default function MobileBottomNav() {
       <div
         className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
         style={{
-          height: '64px',
+          height: '70px',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'linear-gradient(180deg, hsl(220 20% 11% / 0.92) 0%, hsl(220 18% 8% / 0.98) 100%)',
           backdropFilter: 'blur(16px)',
