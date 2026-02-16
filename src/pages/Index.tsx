@@ -24,10 +24,10 @@ const Index = () => {
       <CenterScene />
 
       {/* Overlay glass sidebars */}
-      <div className="absolute top-0 left-0 z-30 flex items-stretch pl-4 py-4" style={{ height: '100vh', width: '32%', minWidth: '30%', maxWidth: '35%' }}>
+      <div className="absolute top-0 left-0 z-10 flex items-stretch pl-4 py-4" style={{ height: '100vh', width: '32%', minWidth: '30%', maxWidth: '35%' }}>
         <LeftPanel />
       </div>
-      <div className="absolute top-0 right-0 z-30 flex items-stretch pr-4 py-4" style={{ height: '100vh', width: '32%', minWidth: '30%', maxWidth: '35%' }}>
+      <div className="absolute top-0 right-0 z-10 flex items-stretch pr-4 py-4" style={{ height: '100vh', width: '32%', minWidth: '30%', maxWidth: '35%' }}>
         <RightPanel />
       </div>
     </div>
