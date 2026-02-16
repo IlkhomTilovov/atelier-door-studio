@@ -189,17 +189,13 @@ function DoorCarousel({
               style={{
                 width: '180px',
                 height: '240px',
-                transform: active ? 'scale(1.05)' : 'scale(0.92)',
-                opacity: active ? 1 : 0.65,
-                background: active
-                  ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.12), hsl(40 45% 50% / 0.04))'
-                  : 'hsl(220 15% 16% / 0.4)',
-                border: active
-                  ? '1.5px solid hsl(40 60% 55% / 0.5)'
-                  : '1px solid hsl(40 60% 55% / 0.08)',
+                transform: active ? 'scale(1.03)' : 'scale(0.92)',
+                opacity: active ? 1 : 0.6,
+                background: 'transparent',
+                border: 'none',
                 boxShadow: active
-                  ? '0 0 24px hsl(40 60% 55% / 0.15), 0 8px 24px rgba(0,0,0,0.3)'
-                  : '0 2px 8px rgba(0,0,0,0.2)',
+                  ? '0 0 28px hsl(40 60% 55% / 0.18), 0 12px 32px rgba(0,0,0,0.25)'
+                  : 'none',
               }}
             >
               {/* Image — grows to fill, contain, no crop */}
