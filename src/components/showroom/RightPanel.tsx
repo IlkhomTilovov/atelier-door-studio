@@ -57,12 +57,6 @@ export default function RightPanel() {
                           transform: active ? 'scale(1.12)' : undefined,
                         }}
                       />
-                      <span
-                        className="text-[9px] tracking-wider font-body transition-all duration-500"
-                        style={{ color: active ? 'hsl(40 55% 72%)' : 'hsl(40 10% 42%)' }}
-                      >
-                        {color.name}
-                      </span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="bg-card/90 backdrop-blur-sm border-border/50 text-xs">
