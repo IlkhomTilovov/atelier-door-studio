@@ -1,7 +1,9 @@
 import { useShowroom } from '@/context/ShowroomContext';
 import { TextureScale } from '@/types/showroom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function CenterScene() {
+  const isMobile = useIsMobile();
   const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor } = useShowroom();
 
   const door = getSelectedDoor();
@@ -21,7 +23,10 @@ export default function CenterScene() {
   const doorDark = adjustBrightness(doorHex, -12);
 
   return (
-    <div className="absolute inset-0 flex items-end justify-center overflow-hidden bg-scene">
+    <div
+      className="absolute inset-0 flex items-end justify-center overflow-hidden bg-scene"
+      style={isMobile ? { bottom: '64px' } : undefined}
+    >
       {/* Wall layer — fixed structural container, image is texture only */}
       <div
         className="absolute inset-0 transition-showroom"
@@ -54,9 +59,9 @@ export default function CenterScene() {
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
           bottom: '16%',
-          height: '62%',
-          minHeight: '70%',
-          maxHeight: '82%',
+          height: isMobile ? '55%' : '62%',
+          minHeight: isMobile ? '50%' : '70%',
+          maxHeight: isMobile ? '70%' : '82%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
