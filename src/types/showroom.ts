@@ -1,3 +1,10 @@
+export interface RoomCategory {
+  id: string;
+  name: string;
+  enabled: boolean;
+  sort_order: number;
+}
+
 export interface DoorColor {
   id: string;
   name: string;
@@ -24,6 +31,7 @@ export interface WallStyle {
   moldingType: 'classic' | 'modern' | 'ornate';
   enabled: boolean;
   image?: string | null;
+  category_id?: string | null;
 }
 
 export type TextureScale = 'small' | 'medium' | 'large';
@@ -45,6 +53,7 @@ export interface ShowroomState {
   selectedDoorColor: string;
   selectedWall: string;
   selectedFloor: string;
+  selectedCategory: string;
   activeCollection: DoorCollection;
 }
 

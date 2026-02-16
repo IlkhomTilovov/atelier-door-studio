@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
-import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial, RoomDoor, RoomFloor, DoorModelColor } from '@/types/showroom';
+import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial, RoomDoor, RoomFloor, DoorModelColor, RoomCategory } from '@/types/showroom';
 import { useShowroomData } from '@/hooks/useShowroomData';
 
 interface ShowroomContextType {
@@ -9,16 +9,19 @@ interface ShowroomContextType {
   allColors: DoorColor[];
   allWalls: WallStyle[];
   allFloors: FloorMaterial[];
+  allCategories: RoomCategory[];
   roomDoors: RoomDoor[];
   roomFloors: RoomFloor[];
   doorModelColors: DoorModelColor[];
   // Filtered data (for showroom)
+  filteredWalls: WallStyle[];
   filteredDoors: DoorModel[];
   filteredColors: DoorColor[];
   filteredFloors: FloorMaterial[];
   walls: WallStyle[];
   loading: boolean;
   refetch: () => Promise<void>;
+  selectCategory: (id: string) => void;
   selectDoor: (id: string) => void;
   selectDoorColor: (id: string) => void;
   selectWall: (id: string) => void;
@@ -28,32 +31,42 @@ interface ShowroomContextType {
   getSelectedDoorColor: () => DoorColor | undefined;
   getSelectedWall: () => WallStyle | undefined;
   getSelectedFloor: () => FloorMaterial | undefined;
+  getSelectedCategory: () => RoomCategory | undefined;
 }
 
 const ShowroomContext = createContext<ShowroomContextType | null>(null);
 
 export function ShowroomProvider({ children }: { children: ReactNode }) {
-  const { doors, colors, walls, floors, roomDoors, roomFloors, doorModelColors, loading, refetch } = useShowroomData();
+  const { categories, doors, colors, walls, floors, roomDoors, roomFloors, doorModelColors, loading, refetch } = useShowroomData();
 
   const [state, setState] = useState<ShowroomState>(() => {
     try {
       const saved = localStorage.getItem('showroom-selection');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...parsed, selectedCategory: parsed.selectedCategory || '' };
+      }
     } catch {}
     return {
       selectedDoor: '',
       selectedDoorColor: '',
       selectedWall: '',
       selectedFloor: '',
+      selectedCategory: '',
       activeCollection: 'classic',
     };
   });
+
+  // Walls filtered by selected category
+  const filteredWalls = useMemo(() => {
+    if (!state.selectedCategory) return walls.filter(w => w.enabled);
+    return walls.filter(w => w.enabled && w.category_id === state.selectedCategory);
+  }, [state.selectedCategory, walls]);
 
   // Doors filtered by selected wall (room style)
   const filteredDoors = useMemo(() => {
     if (!state.selectedWall) return doors.filter(d => d.enabled);
     const doorIds = new Set(roomDoors.filter(rd => rd.wall_id === state.selectedWall).map(rd => rd.door_id));
-    // If no assignments yet, show all doors (backward compat)
     if (doorIds.size === 0) return doors.filter(d => d.enabled);
     return doors.filter(d => d.enabled && doorIds.has(d.id));
   }, [state.selectedWall, doors, roomDoors]);
@@ -62,7 +75,6 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
   const filteredColors = useMemo(() => {
     if (!state.selectedDoor) return colors.filter(c => c.enabled);
     const colorIds = new Set(doorModelColors.filter(dmc => dmc.door_id === state.selectedDoor).map(dmc => dmc.color_id));
-    // If no assignments yet, show all colors (backward compat)
     if (colorIds.size === 0) return colors.filter(c => c.enabled);
     return colors.filter(c => c.enabled && colorIds.has(c.id));
   }, [state.selectedDoor, colors, doorModelColors]);
@@ -71,23 +83,31 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
   const filteredFloors = useMemo(() => {
     if (!state.selectedWall) return floors.filter(f => f.enabled);
     const floorIds = new Set(roomFloors.filter(rf => rf.wall_id === state.selectedWall).map(rf => rf.floor_id));
-    // If no assignments yet, show all floors (backward compat)
     if (floorIds.size === 0) return floors.filter(f => f.enabled);
     return floors.filter(f => f.enabled && floorIds.has(f.id));
   }, [state.selectedWall, floors, roomFloors]);
 
-  // Auto-select first enabled items when data loads or selection changes
+  // Auto-select category
   React.useEffect(() => {
     if (loading) return;
     setState(s => {
-      const newState = { ...s };
-      // Auto-select wall if none selected
-      if (!newState.selectedWall || !walls.find(w => w.id === newState.selectedWall && w.enabled)) {
-        newState.selectedWall = walls.find(w => w.enabled)?.id || '';
+      const enabledCats = categories.filter(c => c.enabled);
+      if (!s.selectedCategory || !enabledCats.find(c => c.id === s.selectedCategory)) {
+        return { ...s, selectedCategory: enabledCats[0]?.id || '' };
       }
-      return newState;
+      return s;
     });
-  }, [loading, walls]);
+  }, [loading, categories]);
+
+  // Auto-select wall when category changes
+  React.useEffect(() => {
+    if (loading) return;
+    setState(s => {
+      const currentWallValid = filteredWalls.find(w => w.id === s.selectedWall);
+      if (currentWallValid) return s;
+      return { ...s, selectedWall: filteredWalls[0]?.id || '' };
+    });
+  }, [loading, state.selectedCategory, filteredWalls]);
 
   // Auto-select door when wall changes
   React.useEffect(() => {
@@ -121,11 +141,12 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
 
   // Persist selection to localStorage
   React.useEffect(() => {
-    if (state.selectedWall) {
+    if (state.selectedCategory) {
       localStorage.setItem('showroom-selection', JSON.stringify(state));
     }
   }, [state]);
 
+  const selectCategory = (id: string) => setState(s => ({ ...s, selectedCategory: id }));
   const selectDoor = (id: string) => setState(s => ({ ...s, selectedDoor: id }));
   const selectDoorColor = (id: string) => setState(s => ({ ...s, selectedDoorColor: id }));
   const selectWall = (id: string) => setState(s => ({ ...s, selectedWall: id }));
@@ -136,17 +157,18 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
   const getSelectedDoorColor = () => colors.find(c => c.id === state.selectedDoorColor);
   const getSelectedWall = () => walls.find(w => w.id === state.selectedWall);
   const getSelectedFloor = () => floors.find(f => f.id === state.selectedFloor);
+  const getSelectedCategory = () => categories.find(c => c.id === state.selectedCategory);
 
   return (
     <ShowroomContext.Provider value={{
       state,
-      allDoors: doors, allColors: colors, allWalls: walls, allFloors: floors,
+      allDoors: doors, allColors: colors, allWalls: walls, allFloors: floors, allCategories: categories,
       roomDoors, roomFloors, doorModelColors,
-      filteredDoors, filteredColors, filteredFloors,
+      filteredWalls, filteredDoors, filteredColors, filteredFloors,
       walls,
       loading, refetch,
-      selectDoor, selectDoorColor, selectWall, selectFloor, setCollection,
-      getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor,
+      selectCategory, selectDoor, selectDoorColor, selectWall, selectFloor, setCollection,
+      getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor, getSelectedCategory,
     }}>
       {children}
     </ShowroomContext.Provider>
