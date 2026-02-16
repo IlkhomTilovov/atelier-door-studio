@@ -187,82 +187,60 @@ function DoorCarousel({
                 onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
                 className="flex-shrink-0 snap-center flex flex-col items-center outline-none"
                 style={{
-                  width: '200px',
-                  transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: active ? 'scale(1.05)' : 'scale(0.88)',
-                  opacity: active ? 1 : 0.45,
+                  width: '160px',
+                  background: 'transparent',
+                  border: 'none',
+                  boxShadow: 'none',
+                  transition: 'all 0.3s ease',
+                  transform: active ? 'scale(1.04)' : 'scale(0.85)',
+                  opacity: active ? 1 : 0.4,
                 }}
               >
-                {/* Door image with spotlight & shadow */}
+                {/* Door image — tall, clean, no wrapper styling */}
                 <div
-                  className="relative w-full flex items-center justify-center"
-                  style={{ height: '220px' }}
+                  className="w-full flex items-center justify-center"
+                  style={{ height: '280px' }}
                 >
-                  {/* Gold glow behind active door */}
-                  {active && (
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background: 'radial-gradient(circle at center 60%, rgba(212,175,55,0.12) 0%, transparent 65%)',
-                      }}
-                    />
-                  )}
                   {door.image ? (
                     <img
                       src={door.image}
                       alt={door.name}
-                      className="max-w-full max-h-full object-contain relative z-[1]"
+                      className="object-contain"
                       draggable={false}
                       style={{
-                        filter: active
-                          ? 'drop-shadow(0 30px 45px rgba(0,0,0,0.55))'
-                          : 'drop-shadow(0 15px 25px rgba(0,0,0,0.35))',
-                        transition: 'filter 0.35s ease',
+                        height: '100%',
+                        width: 'auto',
+                        transition: 'transform 0.3s ease',
                       }}
                     />
                   ) : (
                     <div
-                      className="w-20 h-full rounded-xl flex items-center justify-center"
-                      style={{ background: 'hsl(220 15% 18%)' }}
+                      className="w-16 h-full flex items-center justify-center"
+                      style={{ opacity: 0.3 }}
                     >
-                      <span className="font-display text-3xl" style={{ color: 'hsl(40 30% 35%)' }}>⊞</span>
+                      <span className="font-display text-2xl" style={{ color: 'hsl(40 30% 45%)' }}>⊞</span>
                     </div>
                   )}
-                  {/* Floor reflection line */}
-                  {active && (
-                    <div
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
-                      style={{
-                        width: '70%',
-                        height: '2px',
-                        background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent)',
-                        boxShadow: '0 0 12px rgba(212,175,55,0.1)',
-                      }}
-                    />
-                  )}
                 </div>
-                {/* Typography */}
-                <div className="mt-3 text-center">
+                {/* Name */}
+                <p
+                  className="font-display text-xs tracking-wider mt-2"
+                  style={{
+                    color: active ? '#D4AF37' : 'hsl(40 15% 45%)',
+                    fontWeight: active ? 500 : 400,
+                    transition: 'color 0.3s ease',
+                  }}
+                >
+                  {door.name}
+                </p>
+                {door.panelCount && (
                   <p
-                    className="font-display text-sm tracking-wider"
-                    style={{
-                      color: active ? '#D4AF37' : 'hsl(40 15% 45%)',
-                      fontWeight: active ? 500 : 400,
-                      transition: 'color 0.3s ease',
-                      letterSpacing: '0.08em',
-                    }}
+                    className="font-body text-[9px] mt-0.5"
+                    style={{ color: active ? 'hsl(40 15% 55%)' : 'hsl(40 10% 35%)' }}
                   >
-                    {door.name}
+                    {door.panelCount} panel
                   </p>
-                  {door.panelCount && (
-                    <p
-                      className="font-body text-[9px] mt-0.5 tracking-wide"
-                      style={{ color: active ? 'hsl(40 15% 55%)' : 'hsl(40 10% 35%)' }}
-                    >
-                      {door.panelCount} panel
-                    </p>
-                  )}
-                </div>
+                )}
               </button>
             );
           })}
