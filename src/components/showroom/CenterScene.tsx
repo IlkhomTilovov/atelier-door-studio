@@ -24,25 +24,39 @@ export default function CenterScene() {
 
   return (
     <div
-      className="absolute inset-0 flex items-end justify-center overflow-hidden bg-scene"
-      style={isMobile ? { bottom: '64px', height: 'calc(100vh - 64px)' } : undefined}
+      className="absolute inset-0 flex items-end justify-center overflow-hidden"
+      style={{
+        backgroundColor: '#0a0a0a',
+        ...(isMobile ? { bottom: '64px', height: 'calc(100vh - 64px)' } : {}),
+      }}
     >
-      {/* Wall layer — fixed structural container, image is texture only */}
+      {/* Scene container — centered with dark letterbox top/bottom on mobile */}
       <div
-        className="absolute inset-0 transition-showroom"
-        style={{
-          bottom: isMobile ? '20%' : '16%',
-          backgroundColor: wallColor,
-          ...(wall?.image
-            ? {
-                backgroundImage: `url(${wall.image})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center bottom',
-                backgroundRepeat: 'no-repeat',
-              }
-            : {}),
+        className="absolute transition-showroom"
+        style={isMobile ? {
+          left: 0, right: 0,
+          top: '8%',
+          bottom: '8%',
+        } : {
+          inset: 0,
         }}
-      />
+      >
+        {/* Wall layer */}
+        <div
+          className="absolute inset-0 transition-showroom"
+          style={{
+            bottom: isMobile ? '22%' : '16%',
+            backgroundColor: wallColor,
+            ...(wall?.image
+              ? {
+                  backgroundImage: `url(${wall.image})`,
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center bottom',
+                  backgroundRepeat: 'no-repeat',
+                }
+              : {}),
+          }}
+        />
 
       {/* Wall moldings (only when no wall image) */}
       {!wall?.image && (
@@ -124,6 +138,7 @@ export default function CenterScene() {
           }}
         />
         
+      </div>
       </div>
 
       {/* Subtle vignette */}
