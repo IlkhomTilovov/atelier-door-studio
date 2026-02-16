@@ -24,42 +24,42 @@ export default function CenterScene() {
 
   return (
     <div
-      className="absolute inset-0 flex items-end justify-center overflow-hidden"
+      className="absolute inset-0 overflow-hidden"
       style={{
         backgroundColor: '#0a0a0a',
-        ...(isMobile ? { bottom: '64px', height: 'calc(100vh - 64px)' } : {}),
       }}
     >
-      {/* Scene container — centered with dark letterbox top/bottom on mobile */}
+      {/* Scene container */}
       <div
-        className="absolute transition-showroom"
-        style={isMobile ? {
-          left: 0, right: 0,
-          top: '0%',
-          bottom: '16%',
-        } : {
-          inset: 0,
-        }}
+        className="absolute inset-0 transition-showroom"
       >
         {/* Wall layer */}
         <div
           className="absolute inset-0 transition-showroom"
           style={{
-          bottom: isMobile ? '18%' : '16%',
-          backgroundColor: wallColor,
-          ...(wall?.image
-            ? {
-                backgroundImage: `url(${wall.image})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center bottom',
-                backgroundRepeat: 'no-repeat',
-              }
-            : {}),
-        }}
-      />
+            bottom: '18%',
+          }}
+        >
+          {wall?.image ? (
+            <img
+              src={wall.image}
+              alt=""
+              className="w-full h-full transition-showroom"
+              style={{
+                objectFit: 'contain',
+                objectPosition: 'center bottom',
+              }}
+            />
+          ) : (
+            <div
+              className="absolute inset-0 transition-showroom"
+              style={{ backgroundColor: wallColor }}
+            />
+          )}
+        </div>
 
       {/* Wall moldings (only when no wall image) */}
-      {!wall?.image && (
+      {!wall?.image && !isMobile && (
         <>
           <WallMoldingPanel side="left" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
           <WallMoldingPanel side="right" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
@@ -70,13 +70,10 @@ export default function CenterScene() {
 
       {/* Door layer — sized relative to wall, not image */}
       <div
-        className={`absolute left-1/2 z-20 transition-showroom ${isMobile ? '' : '-translate-x-1/2'}`}
+        className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
         style={{
-          bottom: isMobile ? '18%' : '16%',
-          height: isMobile ? '49%' : '62%',
-          minHeight: isMobile ? '43%' : '70%',
-          maxHeight: isMobile ? '56%' : '82%',
-          ...(isMobile ? { transform: 'translateX(-50%) scale(0.72)', transformOrigin: 'center bottom' } : {}),
+          bottom: '18%',
+          height: isMobile ? '52%' : '62%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -104,8 +101,8 @@ export default function CenterScene() {
       <div
         className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
         style={{
-          height: isMobile ? '18%' : '16%',
-          perspective: isMobile ? '400px' : '450px',
+          height: '18%',
+          perspective: '450px',
           perspectiveOrigin: 'center top',
         }}
       >
