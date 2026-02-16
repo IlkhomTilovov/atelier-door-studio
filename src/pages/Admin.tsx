@@ -197,11 +197,17 @@ function CategoriesAdmin() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    // Unlink walls from this category first
-    await supabase.from('walls').update({ category_id: null }).eq('category_id', deleteTarget.id);
-    await supabase.from('room_categories').delete().eq('id', deleteTarget.id);
-    setDeleteTarget(null);
-    toast.success('O\'chirildi');
+    try {
+      // Unlink walls and door_categories from this category first
+      await supabase.from('walls').update({ category_id: null }).eq('category_id', deleteTarget.id);
+      await supabase.from('door_categories').delete().eq('category_id', deleteTarget.id);
+      const { error } = await supabase.from('room_categories').delete().eq('id', deleteTarget.id);
+      if (error) throw error;
+      setDeleteTarget(null);
+      toast.success('O\'chirildi');
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   };
 
   const getDesignCount = (catId: string) => walls.filter(w => w.category_id === catId).length;
