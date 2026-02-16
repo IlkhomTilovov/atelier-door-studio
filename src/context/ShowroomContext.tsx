@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
-import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial, RoomDoor, RoomFloor, DoorModelColor, RoomCategory } from '@/types/showroom';
+import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial, RoomDoor, RoomFloor, DoorModelColor, RoomCategory, DoorCategory } from '@/types/showroom';
 import { useShowroomData } from '@/hooks/useShowroomData';
 
 interface ShowroomContextType {
@@ -13,6 +13,7 @@ interface ShowroomContextType {
   roomDoors: RoomDoor[];
   roomFloors: RoomFloor[];
   doorModelColors: DoorModelColor[];
+  doorCategories: DoorCategory[];
   // Filtered data (for showroom)
   filteredWalls: WallStyle[];
   filteredDoors: DoorModel[];
@@ -37,7 +38,7 @@ interface ShowroomContextType {
 const ShowroomContext = createContext<ShowroomContextType | null>(null);
 
 export function ShowroomProvider({ children }: { children: ReactNode }) {
-  const { categories, doors, colors, walls, floors, roomDoors, roomFloors, doorModelColors, loading, refetch } = useShowroomData();
+  const { categories, doors, colors, walls, floors, roomDoors, roomFloors, doorModelColors, doorCategories, loading, refetch } = useShowroomData();
 
   const [state, setState] = useState<ShowroomState>(() => {
     try {
@@ -63,13 +64,21 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
     return walls.filter(w => w.enabled && w.category_id === state.selectedCategory);
   }, [state.selectedCategory, walls]);
 
-  // Doors filtered by selected wall (room style)
+  // Doors filtered by selected category (via doorCategories junction) and wall (via roomDoors)
   const filteredDoors = useMemo(() => {
-    if (!state.selectedWall) return doors.filter(d => d.enabled);
-    const doorIds = new Set(roomDoors.filter(rd => rd.wall_id === state.selectedWall).map(rd => rd.door_id));
-    if (doorIds.size === 0) return doors.filter(d => d.enabled);
-    return doors.filter(d => d.enabled && doorIds.has(d.id));
-  }, [state.selectedWall, doors, roomDoors]);
+    let result = doors.filter(d => d.enabled);
+    // Filter by category
+    if (state.selectedCategory) {
+      const catDoorIds = new Set(doorCategories.filter(dc => dc.category_id === state.selectedCategory).map(dc => dc.door_id));
+      if (catDoorIds.size > 0) result = result.filter(d => catDoorIds.has(d.id));
+    }
+    // Further filter by wall (room style)
+    if (state.selectedWall) {
+      const wallDoorIds = new Set(roomDoors.filter(rd => rd.wall_id === state.selectedWall).map(rd => rd.door_id));
+      if (wallDoorIds.size > 0) result = result.filter(d => wallDoorIds.has(d.id));
+    }
+    return result;
+  }, [state.selectedCategory, state.selectedWall, doors, doorCategories, roomDoors]);
 
   // Colors filtered by selected door
   const filteredColors = useMemo(() => {
@@ -163,7 +172,7 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
     <ShowroomContext.Provider value={{
       state,
       allDoors: doors, allColors: colors, allWalls: walls, allFloors: floors, allCategories: categories,
-      roomDoors, roomFloors, doorModelColors,
+      roomDoors, roomFloors, doorModelColors, doorCategories,
       filteredWalls, filteredDoors, filteredColors, filteredFloors,
       walls,
       loading, refetch,
