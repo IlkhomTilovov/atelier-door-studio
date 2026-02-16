@@ -60,8 +60,8 @@ export default function CenterScene() {
               decoding="async"
               className="w-full h-full"
               style={{
-                objectFit: 'contain',
-                objectPosition: 'center bottom',
+                objectFit: 'cover',
+                objectPosition: 'center center',
                 ...gpuAccelStyle,
                 transition: 'all 0.2s ease',
               }}
