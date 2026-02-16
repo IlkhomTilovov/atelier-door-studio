@@ -157,3 +157,16 @@
   background: hsl(var(--gold) / 0.3);
   border-radius: 3px;
 }
+
+/* Mobile showroom aspect ratio protection */
+@media (max-height: 700px) {
+  .showroom-scene img {
+    object-fit: contain !important;
+  }
+}
+
+@media (min-height: 800px) {
+  .showroom-scene img {
+    object-fit: contain !important;
+  }
+}

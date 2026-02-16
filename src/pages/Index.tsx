@@ -9,9 +9,18 @@ const Index = () => {
 
   if (isMobile) {
     return (
-      <div className="relative h-screen w-screen overflow-hidden select-none">
-        {/* Full-bleed scene */}
-        <CenterScene />
+      <div
+        className="relative w-screen overflow-hidden select-none"
+        style={{
+          height: '100dvh',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: '0px',
+        }}
+      >
+        {/* Scene area — leaves room for bottom nav */}
+        <div className="absolute inset-0" style={{ bottom: '70px', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <CenterScene />
+        </div>
         {/* Mobile bottom nav + sheets */}
         <MobileBottomNav />
       </div>

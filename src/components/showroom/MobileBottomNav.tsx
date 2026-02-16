@@ -45,7 +45,7 @@ function BottomSheet({
         style={{
           transform: open ? 'translateY(0)' : 'translateY(100%)',
           maxHeight: '60vh',
-          bottom: '64px',
+          bottom: '70px',
           borderRadius: '24px 24px 0 0',
           background: 'linear-gradient(180deg, hsl(220 20% 13% / 0.97) 0%, hsl(220 18% 10% / 0.99) 100%)',
           border: '1px solid hsl(40 60% 55% / 0.1)',
@@ -405,12 +405,13 @@ export default function MobileBottomNav() {
 
       {/* Fixed bottom tab bar */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
+        className="fixed bottom-0 left-0 right-0 z-[100] flex items-center justify-around"
         style={{
-          height: '64px',
+          height: '70px',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'linear-gradient(180deg, hsl(220 20% 11% / 0.92) 0%, hsl(220 18% 8% / 0.98) 100%)',
-          backdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid hsl(40 60% 55% / 0.08)',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
         }}
