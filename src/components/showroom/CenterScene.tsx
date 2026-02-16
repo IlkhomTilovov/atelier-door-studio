@@ -37,7 +37,7 @@ export default function CenterScene() {
             ? {
                 backgroundImage: `url(${wall.image})`,
                 backgroundSize: isMobile ? 'cover' : 'contain',
-                backgroundPosition: 'center bottom',
+                backgroundPosition: isMobile ? 'center center' : 'center bottom',
                 backgroundRepeat: 'no-repeat',
               }
             : {}),
