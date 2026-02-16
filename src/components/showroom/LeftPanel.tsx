@@ -131,7 +131,7 @@ function DoorCarousel({
     const container = scrollRef.current;
     const idx = doors.findIndex(d => d.id === id);
     if (idx < 0) return;
-    const itemWidth = 140;
+    const itemWidth = 190;
     const gap = 12;
     const center = container.clientWidth / 2 - itemWidth / 2;
     container.scrollTo({ left: idx * (itemWidth + gap) - center + (itemWidth + gap) / 2 - itemWidth / 2, behavior: 'smooth' });
@@ -178,16 +178,16 @@ function DoorCarousel({
       >
         <style>{`div::-webkit-scrollbar { display: none; }`}</style>
         {/* Left spacer for centering */}
-        <div className="flex-shrink-0" style={{ width: 'calc(50% - 70px)' }} />
+        <div className="flex-shrink-0" style={{ width: 'calc(50% - 95px)' }} />
         {doors.map(door => {
           const active = selectedId === door.id;
           return (
             <button
               key={door.id}
               onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
-              className="flex-shrink-0 snap-center flex flex-col items-center rounded-2xl overflow-hidden transition-all duration-300"
+              className="flex-shrink-0 snap-center flex flex-col items-center rounded-2xl transition-all duration-300"
               style={{
-                width: '140px',
+                width: '190px',
                 transform: active ? 'scale(1.05)' : 'scale(0.92)',
                 opacity: active ? 1 : 0.65,
                 background: active
@@ -201,18 +201,18 @@ function DoorCarousel({
                   : '0 2px 8px rgba(0,0,0,0.2)',
               }}
             >
-              {/* Image */}
-              <div className="w-full overflow-hidden" style={{ height: '100px' }}>
+              {/* Image — contain, no crop */}
+              <div className="w-full flex items-center justify-center p-3" style={{ height: '180px' }}>
                 {door.image ? (
-                  <img src={door.image} alt={door.name} className="w-full h-full object-cover" draggable={false} />
+                  <img src={door.image} alt={door.name} className="max-w-full max-h-full object-contain" draggable={false} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ background: 'hsl(220 15% 20%)' }}>
-                    <span className="font-display text-2xl" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
+                  <div className="w-full h-full rounded-xl flex items-center justify-center" style={{ background: 'hsl(220 15% 20%)' }}>
+                    <span className="font-display text-3xl" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
                   </div>
                 )}
               </div>
               {/* Info */}
-              <div className="w-full px-2.5 py-2 text-center">
+              <div className="w-full px-3 pb-3 text-center">
                 <p className="font-body text-xs font-medium tracking-wide truncate" style={{ color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 55%)' }}>
                   {door.name}
                 </p>
@@ -226,7 +226,7 @@ function DoorCarousel({
           );
         })}
         {/* Right spacer for centering */}
-        <div className="flex-shrink-0" style={{ width: 'calc(50% - 70px)' }} />
+        <div className="flex-shrink-0" style={{ width: 'calc(50% - 95px)' }} />
       </div>
 
       {/* Dots indicator */}
