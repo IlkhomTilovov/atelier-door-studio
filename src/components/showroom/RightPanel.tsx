@@ -9,13 +9,13 @@ export default function RightPanel() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="relative flex items-stretch">
+      <div className="relative flex items-stretch w-full overflow-hidden">
         {/* Toggle button */}
         <button
           onClick={() => setCollapsed(c => !c)}
           className="absolute top-1/2 -translate-y-1/2 z-40 w-6 h-12 rounded-l-md flex items-center justify-center transition-all duration-500 hover:opacity-100"
           style={{
-            right: collapsed ? '0px' : '280px',
+            right: collapsed ? '0px' : '100%',
             background: 'hsl(220 15% 15% / 0.35)',
             backdropFilter: 'blur(8px)',
             border: '1px solid hsl(0 0% 100% / 0.06)',
@@ -28,8 +28,7 @@ export default function RightPanel() {
         </button>
 
         <div
-          className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-auto transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'px-5 opacity-100'}`}
-          style={{ width: collapsed ? '0px' : '280px' }}
+          className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-auto transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
         >
           {/* ── Door Color ── */}
           <GlassSectionHeader label="Eshik rangi" />
