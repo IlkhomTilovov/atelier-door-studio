@@ -25,19 +25,19 @@ export default function CenterScene() {
   return (
     <div
       className="absolute inset-0 flex items-end justify-center overflow-hidden bg-scene"
-      style={isMobile ? { bottom: '64px' } : undefined}
+      style={isMobile ? { bottom: '64px', height: 'calc(100vh - 64px)' } : undefined}
     >
       {/* Wall layer — fixed structural container, image is texture only */}
       <div
         className="absolute inset-0 transition-showroom"
         style={{
-          bottom: '16%',
+          bottom: isMobile ? '20%' : '16%',
           backgroundColor: wallColor,
           ...(wall?.image
             ? {
                 backgroundImage: `url(${wall.image})`,
-                backgroundSize: isMobile ? 'cover' : 'contain',
-                backgroundPosition: isMobile ? 'center center' : 'center bottom',
+                backgroundSize: 'contain',
+                backgroundPosition: 'center bottom',
                 backgroundRepeat: 'no-repeat',
               }
             : {}),
@@ -58,10 +58,10 @@ export default function CenterScene() {
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
-          bottom: '16%',
-          height: isMobile ? '55%' : '62%',
-          minHeight: isMobile ? '50%' : '70%',
-          maxHeight: isMobile ? '70%' : '82%',
+          bottom: isMobile ? '20%' : '16%',
+          height: isMobile ? '60%' : '62%',
+          minHeight: isMobile ? '55%' : '70%',
+          maxHeight: isMobile ? '75%' : '82%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -89,8 +89,8 @@ export default function CenterScene() {
       <div
         className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
         style={{
-          height: '16%',
-          perspective: '450px',
+          height: isMobile ? '20%' : '16%',
+          perspective: isMobile ? '350px' : '450px',
           perspectiveOrigin: 'center top',
         }}
       >
