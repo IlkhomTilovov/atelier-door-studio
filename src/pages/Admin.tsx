@@ -234,24 +234,49 @@ function CategoriesAdmin() {
 // ═══════════════════════ Doors ═══════════════════════
 
 function DoorsAdmin() {
-  const { allDoors: doors, allColors: colors } = useShowroom();
+  const { allDoors: doors, allColors: colors, doorCategories } = useShowroom();
   const [showDoorModal, setShowDoorModal] = useState(false);
   const [showColorModal, setShowColorModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type: 'door' | 'color' } | null>(null);
+  const [editTarget, setEditTarget] = useState<typeof doors[0] | null>(null);
 
   const addDoor = async (data: AssetModalData) => {
     setSaving(true);
     try {
-      let imageUrl: string | null = null;
+      let imageUrl: string | null = editTarget?.image || null;
       if (data.imageFile) imageUrl = await uploadAssetImage(data.imageFile, 'doors');
-      const { error } = await supabase.from('doors').insert({
-        name: data.name, collection: data.collection ?? 'classic',
-        molding_style: data.moldingStyle ?? 'simple', panel_count: data.panelCount ?? 2,
-        image_url: imageUrl, sort_order: doors.length + 1,
-      });
-      if (error) throw error;
-      toast.success('Eshik qo\'shildi');
+      else if (!data.imagePreview) imageUrl = null;
+
+      if (editTarget) {
+        const { error } = await supabase.from('doors').update({
+          name: data.name, panel_count: data.panelCount ?? 2, image_url: imageUrl,
+        }).eq('id', editTarget.id);
+        if (error) throw error;
+        // Update junction: delete old, insert new
+        await supabase.from('door_categories').delete().eq('door_id', editTarget.id);
+        if (data.categoryIds && data.categoryIds.length > 0) {
+          await supabase.from('door_categories').insert(
+            data.categoryIds.map(cid => ({ door_id: editTarget.id, category_id: cid }))
+          );
+        }
+        toast.success('Eshik yangilandi');
+        setEditTarget(null);
+      } else {
+        const { data: inserted, error } = await supabase.from('doors').insert({
+          name: data.name, collection: data.collection ?? 'classic',
+          molding_style: 'simple', panel_count: data.panelCount ?? 2,
+          image_url: imageUrl, sort_order: doors.length + 1,
+        }).select('id').single();
+        if (error) throw error;
+        // Insert junction records
+        if (data.categoryIds && data.categoryIds.length > 0 && inserted) {
+          await supabase.from('door_categories').insert(
+            data.categoryIds.map(cid => ({ door_id: inserted.id, category_id: cid }))
+          );
+        }
+        toast.success('Eshik qo\'shildi');
+      }
       setShowDoorModal(false);
     } catch (e: any) { toast.error(e.message); }
     setSaving(false);
@@ -286,36 +311,71 @@ function DoorsAdmin() {
     toast.success('O\'chirildi');
   };
 
+  const getDoorCatNames = (doorId: string) => {
+    const catIds = doorCategories.filter(dc => dc.door_id === doorId).map(dc => dc.category_id);
+    return catIds.map(cid => allCategories.find(c => c.id === cid)?.name).filter(Boolean);
+  };
+
+  const openEdit = (door: typeof doors[0]) => {
+    setEditTarget(door);
+    setShowDoorModal(true);
+  };
+
+  const closeModal = () => {
+    setShowDoorModal(false);
+    setEditTarget(null);
+  };
+
+  const editInitial = editTarget ? {
+    id: editTarget.id,
+    name: editTarget.name,
+    imageUrl: editTarget.image,
+    panelCount: editTarget.panelCount,
+    categoryIds: doorCategories.filter(dc => dc.door_id === editTarget.id).map(dc => dc.category_id),
+  } : null;
+
+  const { allCategories } = useShowroom();
+
   return (
     <>
-      <SectionHeader title="Eshik modellari" count={doors.length} onAdd={() => setShowDoorModal(true)} />
+      <SectionHeader title="Eshik modellari" count={doors.length} onAdd={() => { setEditTarget(null); setShowDoorModal(true); }} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-        {doors.map(door => (
-          <div key={door.id} className={cardCls}>
-            {door.image && (
-              <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
-                <img src={door.image} alt="" className="w-full h-32 object-contain bg-secondary/20" />
-              </div>
-            )}
-            <div className="flex items-center gap-4">
-              {!door.image && (
-                <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
-                  <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: '#E8E4DE' }} />
+        {doors.map(door => {
+          const catNames = getDoorCatNames(door.id);
+          return (
+            <div key={door.id} className={cardCls}>
+              {door.image && (
+                <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
+                  <img src={door.image} alt="" className="w-full h-32 object-contain bg-secondary/20" />
                 </div>
               )}
-              <div className="flex-1 min-w-0">
-                <p className="font-body text-sm text-foreground font-medium truncate">{door.name}</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">{collectionNames[door.collection]} · {door.panelCount} panel</p>
+              <div className="flex items-center gap-4">
+                {!door.image && (
+                  <div className="w-12 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#E8E4DE', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
+                    <div className="w-8 h-12 rounded-sm border border-black/10" style={{ backgroundColor: '#E8E4DE' }} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-body text-sm text-foreground font-medium truncate">{door.name}</p>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">{door.panelCount} panel</p>
+                  {catNames.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {catNames.map(n => (
+                        <span key={n} className="text-[10px] px-2 py-0.5 rounded-full bg-gold/10 text-gold/70 border border-gold/15">{n}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <StatusBadge active={door.enabled} />
               </div>
-              <StatusBadge active={door.enabled} />
+              <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
+                <ToggleSwitch checked={door.enabled} onChange={() => toggleDoor(door.id, door.enabled)} />
+                <button onClick={() => openEdit(door)} className={`${iconBtn} hover:bg-gold/10 text-muted-foreground/50 hover:text-gold border border-transparent hover:border-gold/30`}><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => setDeleteTarget({ id: door.id, name: door.name, type: 'door' })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
             </div>
-            <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
-              <ToggleSwitch checked={door.enabled} onChange={() => toggleDoor(door.id, door.enabled)} />
-              <button className={`${iconBtn} hover:bg-secondary/50 text-muted-foreground/50 hover:text-foreground`}><Pencil className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setDeleteTarget({ id: door.id, name: door.name, type: 'door' })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <SectionHeader title="Eshik ranglari" count={colors.length} onAdd={() => setShowColorModal(true)} />
@@ -334,7 +394,7 @@ function DoorsAdmin() {
         ))}
       </div>
 
-      <AssetModal open={showDoorModal} onClose={() => setShowDoorModal(false)} onSave={addDoor} type="door" title="Yangi eshik modeli" saving={saving} />
+      <AssetModal open={showDoorModal} onClose={closeModal} onSave={addDoor} type="door" title={editTarget ? 'Eshik modelini tahrirlash' : 'Yangi eshik modeli'} saving={saving} initial={editInitial} />
       <AssetModal open={showColorModal} onClose={() => setShowColorModal(false)} onSave={addColor} type="color" title="Yangi rang" saving={saving} />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} name={deleteTarget?.name ?? ''} />
     </>

@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      door_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          door_id: string
+          id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          door_id: string
+          id?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          door_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "door_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "room_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "door_categories_door_id_fkey"
+            columns: ["door_id"]
+            isOneToOne: false
+            referencedRelation: "doors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       door_colors: {
         Row: {
           created_at: string

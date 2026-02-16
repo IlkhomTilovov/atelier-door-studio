@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor, RoomCategory } from '@/types/showroom';
+import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor, RoomCategory, DoorCategory } from '@/types/showroom';
 
 function mapCategory(row: any): RoomCategory {
   return { id: row.id, name: row.name, enabled: row.enabled, sort_order: row.sort_order };
@@ -48,10 +48,11 @@ export function useShowroomData() {
   const [roomDoors, setRoomDoors] = useState<RoomDoor[]>([]);
   const [roomFloors, setRoomFloors] = useState<RoomFloor[]>([]);
   const [doorModelColors, setDoorModelColors] = useState<DoorModelColor[]>([]);
+  const [doorCategories, setDoorCategories] = useState<DoorCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
-    const [cat, d, c, w, f, rd, rf, dmc] = await Promise.all([
+    const [cat, d, c, w, f, rd, rf, dmc, dc] = await Promise.all([
       supabase.from('room_categories').select('*').order('sort_order'),
       supabase.from('doors').select('*').order('sort_order'),
       supabase.from('door_colors').select('*').order('sort_order'),
@@ -60,6 +61,7 @@ export function useShowroomData() {
       supabase.from('room_doors').select('wall_id, door_id'),
       supabase.from('room_floors').select('wall_id, floor_id'),
       supabase.from('door_model_colors').select('door_id, color_id'),
+      supabase.from('door_categories').select('door_id, category_id'),
     ]);
     if (cat.data) setCategories(cat.data.map(mapCategory));
     if (d.data) setDoors(d.data.map(mapDoor));
@@ -69,6 +71,7 @@ export function useShowroomData() {
     if (rd.data) setRoomDoors(rd.data);
     if (rf.data) setRoomFloors(rf.data);
     if (dmc.data) setDoorModelColors(dmc.data);
+    if (dc.data) setDoorCategories(dc.data);
     setLoading(false);
   };
 
@@ -117,6 +120,11 @@ export function useShowroomData() {
           if (data) setDoorModelColors(data);
         });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'door_categories' }, () => {
+        supabase.from('door_categories').select('door_id, category_id').then(({ data }) => {
+          if (data) setDoorCategories(data);
+        });
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -124,7 +132,7 @@ export function useShowroomData() {
 
   return {
     categories, doors, colors, walls, floors,
-    roomDoors, roomFloors, doorModelColors,
+    roomDoors, roomFloors, doorModelColors, doorCategories,
     setDoors, setColors, setWalls, setFloors,
     loading, refetch: fetchAll,
   };

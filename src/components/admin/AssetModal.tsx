@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { X, Upload, Trash2 } from 'lucide-react';
+import { X, Upload, Trash2, ChevronDown, Check } from 'lucide-react';
 import { DoorCollection } from '@/types/showroom';
 import { useShowroom } from '@/context/ShowroomContext';
 
@@ -22,6 +22,7 @@ export interface AssetModalData {
   textureScale?: 'small' | 'medium' | 'large';
   textureOrientation?: 'horizontal' | 'vertical';
   categoryId?: string;
+  categoryIds?: string[];
 }
 
 export interface AssetModalInitial {
@@ -37,6 +38,7 @@ export interface AssetModalInitial {
   textureScale?: 'small' | 'medium' | 'large';
   textureOrientation?: 'horizontal' | 'vertical';
   categoryId?: string;
+  categoryIds?: string[];
 }
 
 interface AssetModalProps {
@@ -66,6 +68,9 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
   const [textureScale, setTextureScale] = useState<'small' | 'medium' | 'large'>('medium');
   const [textureOrientation, setTextureOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
   const [categoryId, setCategoryId] = useState<string>('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+  const catDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +87,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setTextureScale(initial.textureScale || 'medium');
       setTextureOrientation(initial.textureOrientation || 'horizontal');
       setCategoryId(initial.categoryId || '');
+      setCategoryIds(initial.categoryIds || []);
     } else {
       setName(''); setColor(type === 'floor' ? '#6B6B6B' : '#C4B8A8');
       setImageFile(null); setImagePreview(null);
@@ -89,18 +95,29 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setMoldingType('classic'); setPattern('marble');
       setTextureScale('medium'); setTextureOrientation('horizontal');
       setCategoryId(allCategories[0]?.id || '');
+      setCategoryIds([]);
     }
   }, [open, type, allCategories, initial]);
+
+  // Close category dropdown on click outside
+  useEffect(() => {
+    if (!catDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (catDropdownRef.current && !catDropdownRef.current.contains(e.target as Node)) setCatDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [catDropdownOpen]);
 
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'Enter' && name.trim() && !saving) handleSave();
+      if (e.key === 'Escape') { if (catDropdownOpen) { setCatDropdownOpen(false); return; } onClose(); }
+      if (e.key === 'Enter' && name.trim() && !saving && !catDropdownOpen) handleSave();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [open, name, saving]);
+  }, [open, name, saving, catDropdownOpen]);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.match(/image\/(png|jpeg|jpg|svg\+xml)/)) return;
@@ -119,7 +136,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
   const handleSave = () => {
     if (!name.trim() || saving) return;
     const data: AssetModalData = { name: name.trim(), color, imageFile, imagePreview };
-    if (type === 'door') { data.collection = collection; data.panelCount = panelCount; data.categoryId = categoryId || undefined; }
+    if (type === 'door') { data.collection = collection; data.panelCount = panelCount; data.categoryIds = categoryIds; }
     if (type === 'wall') { data.categoryId = categoryId || undefined; }
     if (type === 'floor') { data.pattern = pattern; data.textureScale = textureScale; data.textureOrientation = 'horizontal'; }
     onSave(data);
@@ -207,13 +224,61 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
               {type === 'door' && (
                 <>
                   <div>
-                    <label className={labelCls}>Kategoriya</label>
-                    <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className={selectCls}>
-                      <option value="">Kategoriyasiz</option>
-                      {allCategories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </select>
+                    <label className={labelCls}>Kategoriyalar</label>
+                    {/* Selected tags */}
+                    {categoryIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {categoryIds.map(cid => {
+                          const cat = allCategories.find(c => c.id === cid);
+                          if (!cat) return null;
+                          return (
+                            <span key={cid} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-body bg-gold/15 text-gold border border-gold/25">
+                              {cat.name}
+                              <button onClick={() => setCategoryIds(ids => ids.filter(id => id !== cid))} className="hover:text-foreground transition-colors">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {/* Dropdown trigger */}
+                    <div ref={catDropdownRef} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setCatDropdownOpen(o => !o)}
+                        className={inputCls + " flex items-center justify-between cursor-pointer text-left"}
+                      >
+                        <span className="text-muted-foreground/50">
+                          {categoryIds.length === 0 ? 'Kategoriya tanlang...' : `${categoryIds.length} ta tanlangan`}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground/50 transition-transform duration-200 ${catDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {catDropdownOpen && (
+                        <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-xl overflow-hidden py-1 bg-card/95 backdrop-blur-xl border border-border/40 shadow-[0_12px_40px_rgba(0,0,0,0.5)] animate-fade-in max-h-48 overflow-y-auto">
+                          {allCategories.filter(c => c.enabled).map(cat => {
+                            const selected = categoryIds.includes(cat.id);
+                            return (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  setCategoryIds(ids => selected ? ids.filter(id => id !== cat.id) : [...ids, cat.id]);
+                                }}
+                                className="w-full flex items-center gap-3 text-left px-3.5 py-2.5 font-body text-sm tracking-wide transition-all duration-200 hover:bg-secondary/30"
+                              >
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                                  selected ? 'bg-gold/80 border-gold/60' : 'border-border/50'
+                                }`}>
+                                  {selected && <Check className="w-3 h-3 text-primary-foreground" />}
+                                </div>
+                                <span className={selected ? 'text-gold' : 'text-foreground/70'}>{cat.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className={labelCls}>Panellar soni</label>

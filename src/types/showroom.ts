@@ -72,3 +72,8 @@ export interface DoorModelColor {
   door_id: string;
   color_id: string;
 }
+
+export interface DoorCategory {
+  door_id: string;
+  category_id: string;
+}
