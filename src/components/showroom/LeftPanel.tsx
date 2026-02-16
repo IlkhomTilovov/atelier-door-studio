@@ -70,12 +70,12 @@ function RoomDesignSwiper({
       {/* Card */}
       <div
         key={wall.id}
-        className="mx-auto flex flex-col items-center gap-2 rounded-2xl overflow-hidden transition-all duration-200 animate-fade-in"
+        className="mx-auto flex flex-col items-center gap-2 rounded-2xl overflow-hidden transition-all duration-400 animate-fade-in"
         style={{
           width: '160px',
           background: 'linear-gradient(135deg, hsl(40 50% 55% / 0.1), hsl(40 45% 50% / 0.03))',
           border: '1.5px solid hsl(40 60% 55% / 0.4)',
-          boxShadow: '0 0 12px hsl(40 60% 55% / 0.08), 0 4px 12px rgba(0,0,0,0.2)',
+          boxShadow: '0 0 20px hsl(40 60% 55% / 0.1), 0 6px 20px rgba(0,0,0,0.25)',
         }}
       >
         <div
@@ -83,7 +83,7 @@ function RoomDesignSwiper({
           style={{ height: '120px' }}
         >
           {wall.image ? (
-            <img src={wall.image} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+            <img src={wall.image} alt="" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
           )}
@@ -191,8 +191,8 @@ function DoorCarousel({
                   background: 'transparent',
                   border: 'none',
                   boxShadow: 'none',
-                  transition: 'all 0.2s ease',
-                  transform: active ? 'scale(1.02)' : 'scale(0.85)',
+                  transition: 'all 0.3s ease',
+                  transform: active ? 'scale(1.04)' : 'scale(0.85)',
                   opacity: active ? 1 : 0.4,
                 }}
               >
@@ -205,12 +205,10 @@ function DoorCarousel({
                       alt={door.name}
                       className="object-contain"
                       draggable={false}
-                      loading="lazy"
-                      decoding="async"
                       style={{
                         height: '100%',
                         width: 'auto',
-                        transition: 'transform 0.2s ease',
+                        transition: 'transform 0.3s ease',
                       }}
                     />
                   ) : (
@@ -228,7 +226,7 @@ function DoorCarousel({
                   style={{
                     color: active ? '#D4AF37' : 'hsl(40 15% 45%)',
                     fontWeight: active ? 500 : 400,
-                    transition: 'color 0.2s ease',
+                    transition: 'color 0.3s ease',
                   }}
                 >
                   {door.name}

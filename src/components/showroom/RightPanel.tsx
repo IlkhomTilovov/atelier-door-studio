@@ -60,7 +60,7 @@ export default function RightPanel() {
                             transform: active ? 'scale(1.06)' : undefined,
                           }}
                         >
-                          <img src={floor.image} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                          <img src={floor.image} alt="" className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div
