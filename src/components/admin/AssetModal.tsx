@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Upload, Trash2 } from 'lucide-react';
 import { DoorCollection } from '@/types/showroom';
+import { useShowroom } from '@/context/ShowroomContext';
 
 const inputCls = "w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-lg px-4 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-200";
 const labelCls = "block text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-2";
@@ -20,6 +21,7 @@ export interface AssetModalData {
   pattern?: 'marble' | 'wood' | 'tile';
   textureScale?: 'small' | 'medium' | 'large';
   textureOrientation?: 'horizontal' | 'vertical';
+  categoryId?: string;
 }
 
 interface AssetModalProps {
@@ -32,6 +34,7 @@ interface AssetModalProps {
 }
 
 export default function AssetModal({ open, onClose, onSave, type, title, saving }: AssetModalProps) {
+  const { allCategories } = useShowroom();
   const [name, setName] = useState('');
   const [color, setColor] = useState(type === 'floor' ? '#6B6B6B' : '#C4B8A8');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -46,6 +49,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
   const [pattern, setPattern] = useState<'marble' | 'wood' | 'tile'>('marble');
   const [textureScale, setTextureScale] = useState<'small' | 'medium' | 'large'>('medium');
   const [textureOrientation, setTextureOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
+  const [categoryId, setCategoryId] = useState<string>('');
 
   useEffect(() => {
     if (open) {
@@ -54,8 +58,9 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
       setCollection('classic'); setMoldingStyle('simple'); setPanelCount(2);
       setMoldingType('classic'); setPattern('marble');
       setTextureScale('medium'); setTextureOrientation('horizontal');
+      setCategoryId(allCategories[0]?.id || '');
     }
-  }, [open, type]);
+  }, [open, type, allCategories]);
 
   useEffect(() => {
     if (!open) return;
@@ -85,7 +90,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
     if (!name.trim() || saving) return;
     const data: AssetModalData = { name: name.trim(), color, imageFile, imagePreview };
     if (type === 'door') { data.collection = collection; data.moldingStyle = moldingStyle; data.panelCount = panelCount; }
-    if (type === 'wall') { data.moldingType = moldingType; }
+    if (type === 'wall') { data.moldingType = moldingType; data.categoryId = categoryId || undefined; }
     if (type === 'floor') { data.pattern = pattern; data.textureScale = textureScale; data.textureOrientation = 'horizontal'; }
     onSave(data);
   };
@@ -101,7 +106,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
         <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border/20">
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 font-body mb-1">
-              {type === 'door' ? 'Eshik' : type === 'wall' ? 'Devor' : type === 'floor' ? 'Pol' : 'Rang'}
+              {type === 'door' ? 'Eshik' : type === 'wall' ? 'Xona dizayni' : type === 'floor' ? 'Pol' : 'Rang'}
             </p>
             <h3 className="font-display text-xl text-foreground">{title}</h3>
           </div>
@@ -195,14 +200,25 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
               )}
 
               {type === 'wall' && (
-                <div>
-                  <label className={labelCls}>Molding turi</label>
-                  <select value={moldingType} onChange={e => setMoldingType(e.target.value as any)} className={selectCls}>
-                    <option value="classic">Klassik</option>
-                    <option value="modern">Zamonaviy</option>
-                    <option value="ornate">Bezakli</option>
-                  </select>
-                </div>
+                <>
+                  <div>
+                    <label className={labelCls}>Kategoriya</label>
+                    <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className={selectCls}>
+                      <option value="">Kategoriyasiz</option>
+                      {allCategories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Molding turi</label>
+                    <select value={moldingType} onChange={e => setMoldingType(e.target.value as any)} className={selectCls}>
+                      <option value="classic">Klassik</option>
+                      <option value="modern">Zamonaviy</option>
+                      <option value="ornate">Bezakli</option>
+                    </select>
+                  </div>
+                </>
               )}
 
               {type === 'floor' && (

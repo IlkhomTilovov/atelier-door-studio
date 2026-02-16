@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { collectionNames } from '@/data/showroom-data';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle, LinkIcon, Unlink } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle, LinkIcon, Unlink, FolderOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAssetImage } from '@/hooks/useShowroomData';
 import AssetModal, { AssetModalData } from '@/components/admin/AssetModal';
 import { toast } from 'sonner';
 
-type AdminTab = 'doors' | 'walls' | 'floors' | 'assignments';
+type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'assignments';
 
 const cardCls = "group relative bg-card/60 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-card/80 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 border border-border/40";
 const iconBtn = "p-2 rounded-lg transition-all duration-200 hover:scale-110";
@@ -71,10 +71,58 @@ function SectionHeader({ title, count, onAdd }: { title: string; count: number; 
   );
 }
 
+// Simple inline edit modal for categories
+function CategoryModal({ open, onClose, onSave, saving, initial }: {
+  open: boolean; onClose: () => void; onSave: (name: string) => void; saving: boolean; initial?: string;
+}) {
+  const [name, setName] = useState(initial || '');
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background/85 backdrop-blur-xl" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-card/95 backdrop-blur-xl border border-border/40 rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.5)] animate-scale-in p-6">
+        <h3 className="font-display text-xl text-foreground mb-4">{initial ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya'}</h3>
+        <label className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-2">Nomi <span className="text-destructive/60">*</span></label>
+        <input
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Masalan: Klassik"
+          className="w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-lg px-4 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-200 mb-6"
+          maxLength={50}
+          autoFocus
+          onKeyDown={e => { if (e.key === 'Enter' && name.trim()) onSave(name.trim()); }}
+        />
+        <div className="flex items-center justify-end gap-3">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-lg font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-200">Bekor qilish</button>
+          <button
+            onClick={() => { if (name.trim()) onSave(name.trim()); }}
+            disabled={!name.trim() || saving}
+            className={`px-6 py-2.5 rounded-lg font-body text-sm tracking-wide transition-all duration-300 ${
+              name.trim() && !saving
+                ? 'bg-gradient-to-r from-gold-dark to-gold text-primary-foreground shadow-[0_4px_16px_rgba(180,160,100,0.25)] hover:shadow-[0_6px_24px_rgba(180,160,100,0.35)] hover:-translate-y-0.5'
+                : 'bg-muted/30 text-muted-foreground/40 cursor-not-allowed'
+            }`}
+          >
+            {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ═══════════════════════ Main ═══════════════════════
 
 export default function Admin() {
-  const [tab, setTab] = useState<AdminTab>('walls');
+  const [tab, setTab] = useState<AdminTab>('categories');
+
+  const tabLabels: Record<AdminTab, string> = {
+    categories: 'Kategoriyalar',
+    walls: 'Xona dizaynlari',
+    doors: 'Eshiklar',
+    floors: 'Pollar',
+    assignments: 'Bog\'lash',
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,20 +135,99 @@ export default function Admin() {
         <h1 className="font-display text-2xl text-gold tracking-wider">Admin Panel</h1>
       </header>
       <div className="px-8 flex gap-6 border-b border-border/30">
-        {(['walls', 'doors', 'floors', 'assignments'] as AdminTab[]).map(t => (
+        {(Object.keys(tabLabels) as AdminTab[]).map(t => (
           <button key={t} onClick={() => setTab(t)} className={`relative px-1 py-4 font-body text-sm tracking-wide transition-all duration-300 ${tab === t ? 'text-gold' : 'text-muted-foreground/60 hover:text-foreground/80'}`}>
-            {t === 'doors' ? 'Eshiklar' : t === 'walls' ? 'Xona uslublari' : t === 'floors' ? 'Pollar' : 'Bog\'lash'}
+            {tabLabels[t]}
             {tab === t && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold-dark via-gold to-gold-dark rounded-full" />}
           </button>
         ))}
       </div>
       <div className="p-8 max-w-5xl mx-auto admin-scroll">
+        {tab === 'categories' && <CategoriesAdmin />}
         {tab === 'walls' && <WallsAdmin />}
         {tab === 'doors' && <DoorsAdmin />}
         {tab === 'floors' && <FloorsAdmin />}
         {tab === 'assignments' && <AssignmentsAdmin />}
       </div>
     </div>
+  );
+}
+
+// ═══════════════════════ Categories ═══════════════════════
+
+function CategoriesAdmin() {
+  const { allCategories: categories, allWalls: walls } = useShowroom();
+  const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState<{ id: string; name: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const addCategory = async (name: string) => {
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('room_categories').insert({ name, sort_order: categories.length + 1 });
+      if (error) throw error;
+      toast.success('Kategoriya qo\'shildi');
+      setShowModal(false);
+    } catch (e: any) { toast.error(e.message); }
+    setSaving(false);
+  };
+
+  const updateCategory = async (name: string) => {
+    if (!editTarget) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('room_categories').update({ name }).eq('id', editTarget.id);
+      if (error) throw error;
+      toast.success('Kategoriya yangilandi');
+      setEditTarget(null);
+    } catch (e: any) { toast.error(e.message); }
+    setSaving(false);
+  };
+
+  const toggleCategory = async (id: string, enabled: boolean) => {
+    await supabase.from('room_categories').update({ enabled: !enabled }).eq('id', id);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    // Unlink walls from this category first
+    await supabase.from('walls').update({ category_id: null }).eq('category_id', deleteTarget.id);
+    await supabase.from('room_categories').delete().eq('id', deleteTarget.id);
+    setDeleteTarget(null);
+    toast.success('O\'chirildi');
+  };
+
+  const getDesignCount = (catId: string) => walls.filter(w => w.category_id === catId).length;
+
+  return (
+    <>
+      <SectionHeader title="Xona kategoriyalari" count={categories.length} onAdd={() => setShowModal(true)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {categories.map(cat => (
+          <div key={cat.id} className={cardCls}>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0">
+                <FolderOpen className="w-5 h-5 text-gold" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm text-foreground font-medium truncate">{cat.name}</p>
+                <p className="text-xs text-muted-foreground/50 mt-1">{getDesignCount(cat.id)} ta dizayn</p>
+                <div className="mt-2"><StatusBadge active={cat.enabled} /></div>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
+              <ToggleSwitch checked={cat.enabled} onChange={() => toggleCategory(cat.id, cat.enabled)} />
+              <button onClick={() => setEditTarget({ id: cat.id, name: cat.name })} className={`${iconBtn} hover:bg-secondary/50 text-muted-foreground/50 hover:text-foreground`}><Pencil className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setDeleteTarget({ id: cat.id, name: cat.name })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <CategoryModal open={showModal} onClose={() => setShowModal(false)} onSave={addCategory} saving={saving} />
+      <CategoryModal open={!!editTarget} onClose={() => setEditTarget(null)} onSave={updateCategory} saving={saving} initial={editTarget?.name} />
+      <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} name={deleteTarget?.name ?? ''} />
+    </>
   );
 }
 
@@ -214,13 +341,25 @@ function DoorsAdmin() {
   );
 }
 
-// ═══════════════════════ Walls ═══════════════════════
+// ═══════════════════════ Walls (Room Designs) ═══════════════════════
 
 function WallsAdmin() {
-  const { allWalls: walls } = useShowroom();
+  const { allWalls: walls, allCategories: categories } = useShowroom();
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+
+  const filteredWalls = filterCategory === 'all'
+    ? walls
+    : filterCategory === 'none'
+      ? walls.filter(w => !w.category_id)
+      : walls.filter(w => w.category_id === filterCategory);
+
+  const getCategoryName = (catId?: string | null) => {
+    if (!catId) return 'Kategoriyasiz';
+    return categories.find(c => c.id === catId)?.name || 'Noma\'lum';
+  };
 
   const addWall = async (data: AssetModalData) => {
     setSaving(true);
@@ -230,9 +369,10 @@ function WallsAdmin() {
       const { error } = await supabase.from('walls').insert({
         name: data.name, color: data.color, molding_type: data.moldingType ?? 'classic',
         image_url: imageUrl, sort_order: walls.length + 1,
+        category_id: data.categoryId || null,
       });
       if (error) throw error;
-      toast.success('Xona uslubi qo\'shildi');
+      toast.success('Xona dizayni qo\'shildi');
       setShowModal(false);
     } catch (e: any) { toast.error(e.message); }
     setSaving(false);
@@ -244,9 +384,41 @@ function WallsAdmin() {
 
   return (
     <>
-      <SectionHeader title="Xona uslublari" count={walls.length} onAdd={() => setShowModal(true)} />
+      <SectionHeader title="Xona dizaynlari" count={walls.length} onAdd={() => setShowModal(true)} />
+
+      {/* Category filter */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          onClick={() => setFilterCategory('all')}
+          className={`px-3.5 py-2 rounded-lg font-body text-xs transition-all duration-300 ${
+            filterCategory === 'all' ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
+          }`}
+        >
+          Barchasi
+        </button>
+        {categories.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setFilterCategory(cat.id)}
+            className={`px-3.5 py-2 rounded-lg font-body text-xs transition-all duration-300 ${
+              filterCategory === cat.id ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+        <button
+          onClick={() => setFilterCategory('none')}
+          className={`px-3.5 py-2 rounded-lg font-body text-xs transition-all duration-300 ${
+            filterCategory === 'none' ? 'bg-gold/15 text-gold border border-gold/30' : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
+          }`}
+        >
+          Kategoriyasiz
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {walls.map(wall => (
+        {filteredWalls.map(wall => (
           <div key={wall.id} className={cardCls}>
             {wall.image && (
               <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
@@ -257,7 +429,7 @@ function WallsAdmin() {
               {!wall.image && <Swatch color={wall.color} size="lg" />}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{wall.name}</p>
-                <p className="text-xs text-muted-foreground/50 mt-0.5 capitalize">{wall.moldingType === 'classic' ? 'Klassik' : wall.moldingType === 'modern' ? 'Zamonaviy' : 'Bezakli'}</p>
+                <p className="text-xs text-gold/60 mt-0.5">{getCategoryName(wall.category_id)}</p>
                 <div className="mt-2"><StatusBadge active={wall.enabled} /></div>
               </div>
             </div>
@@ -269,7 +441,7 @@ function WallsAdmin() {
           </div>
         ))}
       </div>
-      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addWall} type="wall" title="Yangi xona uslubi" saving={saving} />
+      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addWall} type="wall" title="Yangi xona dizayni" saving={saving} />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={async () => { if (deleteTarget) { await supabase.from('walls').delete().eq('id', deleteTarget.id); setDeleteTarget(null); toast.success('O\'chirildi'); } }} name={deleteTarget?.name ?? ''} />
     </>
   );
@@ -350,11 +522,8 @@ function AssignmentsAdmin() {
   const activeWall = selectedWall || walls[0]?.id || '';
   const activeDoor = selectedDoor || doors[0]?.id || '';
 
-  // Which doors are assigned to this wall
   const assignedDoorIds = new Set(roomDoors.filter(rd => rd.wall_id === activeWall).map(rd => rd.door_id));
-  // Which floors are assigned to this wall
   const assignedFloorIds = new Set(roomFloors.filter(rf => rf.wall_id === activeWall).map(rf => rf.floor_id));
-  // Which colors are assigned to this door
   const assignedColorIds = new Set(doorModelColors.filter(dmc => dmc.door_id === activeDoor).map(dmc => dmc.color_id));
 
   const toggleRoomDoor = async (doorId: string) => {
@@ -389,16 +558,13 @@ function AssignmentsAdmin() {
 
   return (
     <div className="space-y-10">
-      {/* Room → Door & Floor Assignments */}
       <div>
         <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
           <LinkIcon className="w-5 h-5 text-gold" />
           Xona → Eshik & Pol bog'lash
         </h2>
-
-        {/* Wall selector */}
         <div className="mb-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Xona uslubini tanlang</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Xona dizaynini tanlang</p>
           <div className="flex flex-wrap gap-2">
             {walls.map(wall => (
               <button
@@ -423,7 +589,6 @@ function AssignmentsAdmin() {
           </div>
         </div>
 
-        {/* Doors grid */}
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos eshiklar</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
           {doors.map(door => {
@@ -448,7 +613,6 @@ function AssignmentsAdmin() {
           })}
         </div>
 
-        {/* Floors grid */}
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos pollar</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {floors.map(floor => {
@@ -477,14 +641,11 @@ function AssignmentsAdmin() {
         </div>
       </div>
 
-      {/* Door → Color Assignments */}
       <div>
         <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
           <LinkIcon className="w-5 h-5 text-gold" />
           Eshik → Rang bog'lash
         </h2>
-
-        {/* Door selector */}
         <div className="mb-6">
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Eshik modelini tanlang</p>
           <div className="flex flex-wrap gap-2">
@@ -504,7 +665,6 @@ function AssignmentsAdmin() {
           </div>
         </div>
 
-        {/* Colors grid */}
         <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos ranglar</p>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {colors.map(color => {

@@ -3,8 +3,8 @@ import { useShowroom } from '@/context/ShowroomContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function LeftPanel() {
-  const { state, walls, filteredDoors, selectDoor, selectWall } = useShowroom();
-  const enabledWalls = walls.filter(w => w.enabled);
+  const { state, allCategories, filteredWalls, filteredDoors, selectCategory, selectDoor, selectWall } = useShowroom();
+  const enabledCategories = allCategories.filter(c => c.enabled);
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -18,18 +18,51 @@ export default function LeftPanel() {
           <h1 className="font-display text-2xl tracking-[0.3em]" style={{ color: 'hsl(40 55% 68%)' }}>
             SHOWROOM
           </h1>
-          <div
-            className="w-12 h-px mx-auto mt-3"
-            style={{ background: 'linear-gradient(90deg, transparent, hsl(40 60% 55% / 0.5), transparent)' }}
-          />
+          <div className="w-12 h-px mx-auto mt-3" style={{ background: 'linear-gradient(90deg, transparent, hsl(40 60% 55% / 0.5), transparent)' }} />
         </div>
 
-        {/* Room Styles (Primary) */}
+        {/* Room Categories */}
+        <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-3" style={{ color: 'hsl(40 30% 50%)' }}>
+          Kategoriya
+        </p>
+        <div className="flex flex-wrap gap-1.5 mb-5">
+          {enabledCategories.map(cat => {
+            const active = state.selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => selectCategory(cat.id)}
+                className="px-3 py-1.5 rounded-lg font-body text-xs tracking-wide transition-all duration-500"
+                style={{
+                  background: active ? 'linear-gradient(135deg, hsl(40 50% 55% / 0.2), hsl(40 45% 50% / 0.08))' : 'hsl(220 15% 18% / 0.5)',
+                  color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 55%)',
+                  boxShadow: active ? '0 0 0 1px hsl(40 60% 55% / 0.35)' : '0 0 0 1px hsl(0 0% 100% / 0.05)',
+                }}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
+          <div className="w-1 h-1 rounded-full" style={{ background: 'hsl(40 60% 55% / 0.3)' }} />
+          <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
+        </div>
+
+        {/* Room Designs */}
         <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-4" style={{ color: 'hsl(40 30% 50%)' }}>
-          Xona uslubi
+          Xona dizayni
         </p>
         <div className="space-y-1.5 mb-6">
-          {enabledWalls.map(wall => {
+          {filteredWalls.length === 0 && (
+            <p className="text-xs text-center py-3" style={{ color: 'hsl(40 10% 40%)' }}>
+              Bu kategoriyada dizayn yo'q
+            </p>
+          )}
+          {filteredWalls.map(wall => {
             const active = state.selectedWall === wall.id;
             return (
               <button

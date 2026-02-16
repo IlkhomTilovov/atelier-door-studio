@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor } from '@/types/showroom';
+import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor, RoomCategory } from '@/types/showroom';
+
+function mapCategory(row: any): RoomCategory {
+  return { id: row.id, name: row.name, enabled: row.enabled, sort_order: row.sort_order };
+}
 
 function mapDoor(row: any): DoorModel {
   return {
-    id: row.id,
-    name: row.name,
+    id: row.id, name: row.name,
     collection: row.collection as DoorCollection,
     moldingStyle: row.molding_style as DoorModel['moldingStyle'],
     panelCount: row.panel_count as DoorModel['panelCount'],
-    enabled: row.enabled,
-    image: row.image_url,
+    enabled: row.enabled, image: row.image_url,
   };
 }
 
@@ -23,6 +25,7 @@ function mapWall(row: any): WallStyle {
     id: row.id, name: row.name, color: row.color,
     moldingType: row.molding_type as WallStyle['moldingType'],
     enabled: row.enabled, image: row.image_url,
+    category_id: row.category_id,
   };
 }
 
@@ -37,6 +40,7 @@ function mapFloor(row: any): FloorMaterial {
 }
 
 export function useShowroomData() {
+  const [categories, setCategories] = useState<RoomCategory[]>([]);
   const [doors, setDoors] = useState<DoorModel[]>([]);
   const [colors, setColors] = useState<DoorColor[]>([]);
   const [walls, setWalls] = useState<WallStyle[]>([]);
@@ -47,7 +51,8 @@ export function useShowroomData() {
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
-    const [d, c, w, f, rd, rf, dmc] = await Promise.all([
+    const [cat, d, c, w, f, rd, rf, dmc] = await Promise.all([
+      supabase.from('room_categories').select('*').order('sort_order'),
       supabase.from('doors').select('*').order('sort_order'),
       supabase.from('door_colors').select('*').order('sort_order'),
       supabase.from('walls').select('*').order('sort_order'),
@@ -56,6 +61,7 @@ export function useShowroomData() {
       supabase.from('room_floors').select('wall_id, floor_id'),
       supabase.from('door_model_colors').select('door_id, color_id'),
     ]);
+    if (cat.data) setCategories(cat.data.map(mapCategory));
     if (d.data) setDoors(d.data.map(mapDoor));
     if (c.data) setColors(c.data.map(mapColor));
     if (w.data) setWalls(w.data.map(mapWall));
@@ -71,6 +77,11 @@ export function useShowroomData() {
 
     const channel = supabase
       .channel('showroom-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_categories' }, () => {
+        supabase.from('room_categories').select('*').order('sort_order').then(({ data }) => {
+          if (data) setCategories(data.map(mapCategory));
+        });
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'doors' }, () => {
         supabase.from('doors').select('*').order('sort_order').then(({ data }) => {
           if (data) setDoors(data.map(mapDoor));
@@ -112,7 +123,7 @@ export function useShowroomData() {
   }, []);
 
   return {
-    doors, colors, walls, floors,
+    categories, doors, colors, walls, floors,
     roomDoors, roomFloors, doorModelColors,
     setDoors, setColors, setWalls, setFloors,
     loading, refetch: fetchAll,
