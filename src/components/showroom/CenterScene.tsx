@@ -73,7 +73,7 @@ export default function CenterScene() {
         className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
         style={{
           bottom: '18%',
-          height: isMobile ? '39%' : '62%',
+          height: isMobile ? '33%' : '62%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
