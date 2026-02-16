@@ -31,7 +31,6 @@ export default function CenterScene() {
       <div
         className="absolute inset-0 transition-showroom"
         style={{
-          bottom: isMobile ? '18%' : '16%',
           backgroundColor: wallColor,
         }}
       >
