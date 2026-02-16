@@ -45,18 +45,18 @@ export default function CenterScene() {
         <div
           className="absolute inset-0 transition-showroom"
           style={{
-            bottom: isMobile ? '22%' : '16%',
-            backgroundColor: wallColor,
-            ...(wall?.image
-              ? {
-                  backgroundImage: `url(${wall.image})`,
-                  backgroundSize: 'contain',
-                  backgroundPosition: 'center bottom',
-                  backgroundRepeat: 'no-repeat',
-                }
-              : {}),
-          }}
-        />
+          bottom: isMobile ? '18%' : '16%',
+          backgroundColor: wallColor,
+          ...(wall?.image
+            ? {
+                backgroundImage: `url(${wall.image})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center bottom',
+                backgroundRepeat: 'no-repeat',
+              }
+            : {}),
+        }}
+      />
 
       {/* Wall moldings (only when no wall image) */}
       {!wall?.image && (
@@ -72,10 +72,10 @@ export default function CenterScene() {
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
-          bottom: isMobile ? '20%' : '16%',
-          height: isMobile ? '60%' : '62%',
-          minHeight: isMobile ? '55%' : '70%',
-          maxHeight: isMobile ? '75%' : '82%',
+          bottom: isMobile ? '18%' : '16%',
+          height: isMobile ? '55%' : '62%',
+          minHeight: isMobile ? '50%' : '70%',
+          maxHeight: isMobile ? '68%' : '82%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -103,8 +103,8 @@ export default function CenterScene() {
       <div
         className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
         style={{
-          height: isMobile ? '20%' : '16%',
-          perspective: isMobile ? '350px' : '450px',
+          height: isMobile ? '18%' : '16%',
+          perspective: isMobile ? '400px' : '450px',
           perspectiveOrigin: 'center top',
         }}
       >
