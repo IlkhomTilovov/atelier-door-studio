@@ -128,11 +128,11 @@
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .glass-panel {
-    background: hsl(220 20% 12% / 0.45);
+    background: hsl(20 60% 85% / 0.55);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(var(--gold) / 0.12);
-    box-shadow: inset 0 1px 0 hsl(var(--gold) / 0.06), 0 8px 32px rgba(0,0,0,0.4);
+    border: 1px solid hsl(20 50% 70% / 0.3);
+    box-shadow: inset 0 1px 0 hsl(20 60% 90% / 0.3), 0 8px 32px rgba(0,0,0,0.2);
   }
   .glass-scrollbar::-webkit-scrollbar {
     width: 4px;
