@@ -120,7 +120,7 @@ export default function CenterScene() {
                   backgroundImage: `url(${floor.image})`,
                   backgroundRepeat: 'repeat',
                   backgroundPosition: 'center top',
-                  backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale),
+                  backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, isMobile),
                 }
               : {
                   backgroundImage: floor?.pattern === 'marble'
@@ -333,15 +333,15 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
 function getFloorTextureSize(
   pattern: string,
   scale: TextureScale = 'medium',
+  mobile: boolean = false,
 ): string {
   const scaleMultipliers: Record<TextureScale, number> = {
     small: 0.4,
     medium: 0.65,
     large: 1,
   };
-  const m = scaleMultipliers[scale];
+  const m = scaleMultipliers[scale] * (mobile ? 0.5 : 1);
 
-  // Base sizes simulate real-world tile/plank dimensions (always horizontal)
   const w = pattern === 'wood' ? 120 * m : 200 * m;
   const h = pattern === 'wood' ? 800 * m : 200 * m;
 
