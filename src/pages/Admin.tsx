@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { collectionNames } from '@/data/showroom-data';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle, LinkIcon, Unlink, FolderOpen } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle, FolderOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAssetImage } from '@/hooks/useShowroomData';
 import AssetModal, { AssetModalData, AssetModalInitial } from '@/components/admin/AssetModal';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import TelegramSettings from '@/components/admin/TelegramSettings';
 import OrdersAdmin from '@/components/admin/OrdersAdmin';
 
-type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'assignments' | 'orders' | 'settings';
+type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'orders' | 'settings';
 
 const cardCls = "group relative bg-card/60 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-card/80 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 border border-border/40";
 const iconBtn = "p-2 rounded-lg transition-all duration-200 hover:scale-110";
@@ -124,7 +124,6 @@ export default function Admin() {
     walls: 'Xona dizaynlari',
     doors: 'Eshiklar',
     floors: 'Pollar',
-    assignments: 'Bog\'lash',
     orders: '📦 Buyurtmalar',
     settings: '⚙️ Sozlamalar',
   };
@@ -152,7 +151,7 @@ export default function Admin() {
         {tab === 'walls' && <WallsAdmin />}
         {tab === 'doors' && <DoorsAdmin />}
         {tab === 'floors' && <FloorsAdmin />}
-        {tab === 'assignments' && <AssignmentsAdmin />}
+        
         {tab === 'orders' && <OrdersAdmin />}
         {tab === 'settings' && <TelegramSettings />}
       </div>
@@ -624,183 +623,3 @@ function FloorsAdmin() {
   );
 }
 
-// ═══════════════════════ Assignments ═══════════════════════
-
-function AssignmentsAdmin() {
-  const { allWalls: walls, allDoors: doors, allColors: colors, allFloors: floors, roomDoors, roomFloors, doorModelColors } = useShowroom();
-  const [selectedWall, setSelectedWall] = useState<string>('');
-  const [selectedDoor, setSelectedDoor] = useState<string>('');
-
-  const activeWall = selectedWall || walls[0]?.id || '';
-  const activeDoor = selectedDoor || doors[0]?.id || '';
-
-  const assignedDoorIds = new Set(roomDoors.filter(rd => rd.wall_id === activeWall).map(rd => rd.door_id));
-  const assignedFloorIds = new Set(roomFloors.filter(rf => rf.wall_id === activeWall).map(rf => rf.floor_id));
-  const assignedColorIds = new Set(doorModelColors.filter(dmc => dmc.door_id === activeDoor).map(dmc => dmc.color_id));
-
-  const toggleRoomDoor = async (doorId: string) => {
-    if (assignedDoorIds.has(doorId)) {
-      await supabase.from('room_doors').delete().eq('wall_id', activeWall).eq('door_id', doorId);
-      toast.success('Eshik bog\'lanmasi olib tashlandi');
-    } else {
-      await supabase.from('room_doors').insert({ wall_id: activeWall, door_id: doorId });
-      toast.success('Eshik bog\'landi');
-    }
-  };
-
-  const toggleRoomFloor = async (floorId: string) => {
-    if (assignedFloorIds.has(floorId)) {
-      await supabase.from('room_floors').delete().eq('wall_id', activeWall).eq('floor_id', floorId);
-      toast.success('Pol bog\'lanmasi olib tashlandi');
-    } else {
-      await supabase.from('room_floors').insert({ wall_id: activeWall, floor_id: floorId });
-      toast.success('Pol bog\'landi');
-    }
-  };
-
-  const toggleDoorColor = async (colorId: string) => {
-    if (assignedColorIds.has(colorId)) {
-      await supabase.from('door_model_colors').delete().eq('door_id', activeDoor).eq('color_id', colorId);
-      toast.success('Rang bog\'lanmasi olib tashlandi');
-    } else {
-      await supabase.from('door_model_colors').insert({ door_id: activeDoor, color_id: colorId });
-      toast.success('Rang bog\'landi');
-    }
-  };
-
-  return (
-    <div className="space-y-10">
-      <div>
-        <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
-          <LinkIcon className="w-5 h-5 text-gold" />
-          Xona → Eshik & Pol bog'lash
-        </h2>
-        <div className="mb-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Xona dizaynini tanlang</p>
-          <div className="flex flex-wrap gap-2">
-            {walls.map(wall => (
-              <button
-                key={wall.id}
-                onClick={() => setSelectedWall(wall.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-body text-sm transition-all duration-300 ${
-                  activeWall === wall.id
-                    ? 'bg-gold/15 text-gold border border-gold/30 shadow-[0_0_12px_rgba(180,160,100,0.15)]'
-                    : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
-                }`}
-              >
-                {wall.image ? (
-                  <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0">
-                    <img src={wall.image} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-6 h-6 rounded flex-shrink-0" style={{ backgroundColor: wall.color }} />
-                )}
-                {wall.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos eshiklar</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
-          {doors.map(door => {
-            const assigned = assignedDoorIds.has(door.id);
-            return (
-              <button
-                key={door.id}
-                onClick={() => toggleRoomDoor(door.id)}
-                className={`relative p-3 rounded-xl text-left font-body text-sm transition-all duration-300 ${
-                  assigned
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                    : 'bg-card/40 border border-border/30 text-muted-foreground hover:bg-card/60'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {assigned ? <LinkIcon className="w-3.5 h-3.5" /> : <Unlink className="w-3.5 h-3.5 opacity-40" />}
-                  <span className="truncate">{door.name}</span>
-                </div>
-                <p className="text-[10px] mt-1 opacity-60">{collectionNames[door.collection]}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos pollar</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {floors.map(floor => {
-            const assigned = assignedFloorIds.has(floor.id);
-            return (
-              <button
-                key={floor.id}
-                onClick={() => toggleRoomFloor(floor.id)}
-                className={`relative p-3 rounded-xl text-left font-body text-sm transition-all duration-300 ${
-                  assigned
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                    : 'bg-card/40 border border-border/30 text-muted-foreground hover:bg-card/60'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {floor.image ? (
-                    <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0"><img src={floor.image} alt="" className="w-full h-full object-cover" /></div>
-                  ) : (
-                    <div className="w-6 h-6 rounded flex-shrink-0" style={{ backgroundColor: floor.color }} />
-                  )}
-                  <span className="truncate">{floor.name}</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div>
-        <h2 className="font-display text-xl text-foreground mb-4 flex items-center gap-2">
-          <LinkIcon className="w-5 h-5 text-gold" />
-          Eshik → Rang bog'lash
-        </h2>
-        <div className="mb-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Eshik modelini tanlang</p>
-          <div className="flex flex-wrap gap-2">
-            {doors.map(door => (
-              <button
-                key={door.id}
-                onClick={() => setSelectedDoor(door.id)}
-                className={`px-4 py-2.5 rounded-xl font-body text-sm transition-all duration-300 ${
-                  activeDoor === door.id
-                    ? 'bg-gold/15 text-gold border border-gold/30 shadow-[0_0_12px_rgba(180,160,100,0.15)]'
-                    : 'bg-card/40 text-muted-foreground border border-border/30 hover:bg-card/60'
-                }`}
-              >
-                {door.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-3">Mos ranglar</p>
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {colors.map(color => {
-            const assigned = assignedColorIds.has(color.id);
-            return (
-              <button
-                key={color.id}
-                onClick={() => toggleDoorColor(color.id)}
-                className={`relative p-3 rounded-xl text-center font-body text-sm transition-all duration-300 ${
-                  assigned
-                    ? 'bg-emerald-500/10 border border-emerald-500/30'
-                    : 'bg-card/40 border border-border/30 hover:bg-card/60'
-                }`}
-              >
-                <div className="w-10 h-10 rounded-lg mx-auto mb-2" style={{
-                  backgroundColor: color.hex,
-                  boxShadow: assigned ? '0 0 0 2px rgb(16 185 129 / 0.5)' : '0 2px 6px rgba(0,0,0,0.25)',
-                }} />
-                <span className={`text-xs ${assigned ? 'text-emerald-400' : 'text-muted-foreground'}`}>{color.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
