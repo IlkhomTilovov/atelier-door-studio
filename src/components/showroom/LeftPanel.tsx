@@ -113,7 +113,7 @@ function RoomDesignSwiper({
   );
 }
 
-/* ── Door Model Carousel ── */
+/* ── Premium Door Showcase Carousel ── */
 function DoorCarousel({
   doors,
   selectedId,
@@ -131,13 +131,12 @@ function DoorCarousel({
     const container = scrollRef.current;
     const idx = doors.findIndex(d => d.id === id);
     if (idx < 0) return;
-    const itemWidth = 190;
-    const gap = 12;
+    const itemWidth = 200;
+    const gap = 16;
     const center = container.clientWidth / 2 - itemWidth / 2;
     container.scrollTo({ left: idx * (itemWidth + gap) - center + (itemWidth + gap) / 2 - itemWidth / 2, behavior: 'smooth' });
   }, [doors]);
 
-  // Scroll to selected on mount & selection change
   useEffect(() => {
     if (selectedId) setTimeout(() => scrollToItem(selectedId), 50);
   }, [selectedId, scrollToItem]);
@@ -150,10 +149,9 @@ function DoorCarousel({
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragState.current.dragging || !scrollRef.current) return;
-    const dx = e.clientX - dragState.current.startX;
-    scrollRef.current.scrollLeft = dragState.current.scrollLeft - dx;
+    scrollRef.current.scrollLeft = dragState.current.scrollLeft - (e.clientX - dragState.current.startX);
   };
-  const onPointerUp = (e: React.PointerEvent) => {
+  const onPointerUp = () => {
     dragState.current.dragging = false;
     if (scrollRef.current) scrollRef.current.style.cursor = 'grab';
   };
@@ -168,67 +166,130 @@ function DoorCarousel({
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
+      {/* Showcase stage with premium background */}
       <div
-        ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory select-none touch-pan-x"
-        style={{ cursor: 'grab', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
+        className="relative rounded-2xl overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #141821 0%, #1c2230 100%)',
+          padding: '16px 0',
+        }}
       >
-        <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-        {/* Left spacer for centering */}
-        <div className="flex-shrink-0" style={{ width: 'calc(50% - 95px)' }} />
-        {doors.map(door => {
-          const active = selectedId === door.id;
-          return (
-            <button
-              key={door.id}
-              onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
-              className="flex-shrink-0 snap-center flex flex-col rounded-2xl transition-all duration-300"
-              style={{
-                width: '180px',
-                height: '240px',
-                transform: active ? 'scale(1.03)' : 'scale(0.92)',
-                opacity: active ? 1 : 0.6,
-                background: 'transparent',
-                border: 'none',
-                boxShadow: active
-                  ? '0 0 28px hsl(40 60% 55% / 0.18), 0 12px 32px rgba(0,0,0,0.25)'
-                  : 'none',
-              }}
-            >
-              {/* Image — grows to fill, contain, no crop */}
-              <div className="flex-1 flex items-center justify-center p-3 min-h-0">
-                {door.image ? (
-                  <img src={door.image} alt={door.name} className="max-w-full max-h-full object-contain" draggable={false} />
-                ) : (
-                  <div className="w-full h-full rounded-xl flex items-center justify-center" style={{ background: 'hsl(220 15% 20%)' }}>
-                    <span className="font-display text-3xl" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
-                  </div>
-                )}
-              </div>
-              {/* Info — fixed bottom */}
-              <div className="flex-shrink-0 w-full px-3 pb-3 pt-1 text-center">
-                <p className="font-body text-xs font-medium tracking-wide truncate" style={{ color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 55%)' }}>
-                  {door.name}
-                </p>
-                {door.panelCount && (
-                  <p className="font-body text-[9px] mt-0.5" style={{ color: 'hsl(40 15% 42%)' }}>
-                    {door.panelCount} panel
+        {/* Radial spotlight behind active area */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 60% 80% at center 45%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.3) 70%)',
+          }}
+        />
+        {/* Edge fade masks */}
+        <div className="absolute inset-y-0 left-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(90deg, #141821, transparent)' }} />
+        <div className="absolute inset-y-0 right-0 w-8 z-10 pointer-events-none" style={{ background: 'linear-gradient(270deg, #1c2230, transparent)' }} />
+
+        <div
+          ref={scrollRef}
+          className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory select-none touch-pan-x z-[1]"
+          style={{ cursor: 'grab', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+        >
+          <style>{`.door-scroll::-webkit-scrollbar { display: none; }`}</style>
+          {/* Spacers for centering */}
+          <div className="flex-shrink-0" style={{ width: 'calc(50% - 100px)' }} />
+          {doors.map(door => {
+            const active = selectedId === door.id;
+            return (
+              <button
+                key={door.id}
+                onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
+                className="flex-shrink-0 snap-center flex flex-col items-center outline-none"
+                style={{
+                  width: '200px',
+                  transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: active ? 'scale(1.05)' : 'scale(0.88)',
+                  opacity: active ? 1 : 0.45,
+                }}
+              >
+                {/* Door image with spotlight & shadow */}
+                <div
+                  className="relative w-full flex items-center justify-center"
+                  style={{ height: '220px' }}
+                >
+                  {/* Gold glow behind active door */}
+                  {active && (
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(circle at center 60%, rgba(212,175,55,0.12) 0%, transparent 65%)',
+                      }}
+                    />
+                  )}
+                  {door.image ? (
+                    <img
+                      src={door.image}
+                      alt={door.name}
+                      className="max-w-full max-h-full object-contain relative z-[1]"
+                      draggable={false}
+                      style={{
+                        filter: active
+                          ? 'drop-shadow(0 30px 45px rgba(0,0,0,0.55))'
+                          : 'drop-shadow(0 15px 25px rgba(0,0,0,0.35))',
+                        transition: 'filter 0.35s ease',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="w-20 h-full rounded-xl flex items-center justify-center"
+                      style={{ background: 'hsl(220 15% 18%)' }}
+                    >
+                      <span className="font-display text-3xl" style={{ color: 'hsl(40 30% 35%)' }}>⊞</span>
+                    </div>
+                  )}
+                  {/* Floor reflection line */}
+                  {active && (
+                    <div
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
+                      style={{
+                        width: '70%',
+                        height: '2px',
+                        background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent)',
+                        boxShadow: '0 0 12px rgba(212,175,55,0.1)',
+                      }}
+                    />
+                  )}
+                </div>
+                {/* Typography */}
+                <div className="mt-3 text-center">
+                  <p
+                    className="font-display text-sm tracking-wider"
+                    style={{
+                      color: active ? '#D4AF37' : 'hsl(40 15% 45%)',
+                      fontWeight: active ? 500 : 400,
+                      transition: 'color 0.3s ease',
+                      letterSpacing: '0.08em',
+                    }}
+                  >
+                    {door.name}
                   </p>
-                )}
-              </div>
-            </button>
-          );
-        })}
-        {/* Right spacer for centering */}
-        <div className="flex-shrink-0" style={{ width: 'calc(50% - 95px)' }} />
+                  {door.panelCount && (
+                    <p
+                      className="font-body text-[9px] mt-0.5 tracking-wide"
+                      style={{ color: active ? 'hsl(40 15% 55%)' : 'hsl(40 10% 35%)' }}
+                    >
+                      {door.panelCount} panel
+                    </p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+          <div className="flex-shrink-0" style={{ width: 'calc(50% - 100px)' }} />
+        </div>
       </div>
 
-      {/* Dots indicator */}
+      {/* Minimal dot indicators */}
       {doors.length > 1 && (
-        <div className="flex justify-center gap-1.5 mt-1">
+        <div className="flex justify-center gap-1.5 mt-3">
           {doors.map(d => {
             const active = selectedId === d.id;
             return (
@@ -237,9 +298,9 @@ function DoorCarousel({
                 onClick={() => { onSelect(d.id); scrollToItem(d.id); }}
                 className="rounded-full transition-all duration-300"
                 style={{
-                  width: active ? '14px' : '5px',
+                  width: active ? '16px' : '5px',
                   height: '5px',
-                  background: active ? 'hsl(40 60% 58%)' : 'hsl(40 20% 35% / 0.5)',
+                  background: active ? '#D4AF37' : 'hsl(40 20% 30% / 0.5)',
                 }}
               />
             );
