@@ -185,9 +185,10 @@ function DoorCarousel({
             <button
               key={door.id}
               onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
-              className="flex-shrink-0 snap-center flex flex-col items-center rounded-2xl transition-all duration-300"
+              className="flex-shrink-0 snap-center flex flex-col rounded-2xl transition-all duration-300"
               style={{
-                width: '190px',
+                width: '180px',
+                height: '240px',
                 transform: active ? 'scale(1.05)' : 'scale(0.92)',
                 opacity: active ? 1 : 0.65,
                 background: active
@@ -201,8 +202,8 @@ function DoorCarousel({
                   : '0 2px 8px rgba(0,0,0,0.2)',
               }}
             >
-              {/* Image — contain, no crop */}
-              <div className="w-full flex items-center justify-center p-3" style={{ height: '180px' }}>
+              {/* Image — grows to fill, contain, no crop */}
+              <div className="flex-1 flex items-center justify-center p-3 min-h-0">
                 {door.image ? (
                   <img src={door.image} alt={door.name} className="max-w-full max-h-full object-contain" draggable={false} />
                 ) : (
@@ -211,8 +212,8 @@ function DoorCarousel({
                   </div>
                 )}
               </div>
-              {/* Info */}
-              <div className="w-full px-3 pb-3 text-center">
+              {/* Info — fixed bottom */}
+              <div className="flex-shrink-0 w-full px-3 pb-3 pt-1 text-center">
                 <p className="font-body text-xs font-medium tracking-wide truncate" style={{ color: active ? 'hsl(40 55% 72%)' : 'hsl(40 15% 55%)' }}>
                   {door.name}
                 </p>
