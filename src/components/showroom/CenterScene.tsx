@@ -70,12 +70,13 @@ export default function CenterScene() {
 
       {/* Door layer — sized relative to wall, not image */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
+        className={`absolute left-1/2 z-20 transition-showroom ${isMobile ? '' : '-translate-x-1/2'}`}
         style={{
           bottom: isMobile ? '18%' : '16%',
           height: isMobile ? '49%' : '62%',
           minHeight: isMobile ? '43%' : '70%',
           maxHeight: isMobile ? '56%' : '82%',
+          ...(isMobile ? { transform: 'translateX(-50%) scale(0.72)', transformOrigin: 'center bottom' } : {}),
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
