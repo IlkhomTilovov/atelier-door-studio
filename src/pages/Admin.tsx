@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Pencil, AlertTriangle, LinkIcon, Unlink, FolderOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadAssetImage } from '@/hooks/useShowroomData';
-import AssetModal, { AssetModalData } from '@/components/admin/AssetModal';
+import AssetModal, { AssetModalData, AssetModalInitial } from '@/components/admin/AssetModal';
 import { toast } from 'sonner';
 
 type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'assignments';
@@ -349,6 +349,7 @@ function WallsAdmin() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [editTarget, setEditTarget] = useState<typeof walls[0] | null>(null);
 
   const filteredWalls = filterCategory === 'all'
     ? walls
@@ -361,30 +362,66 @@ function WallsAdmin() {
     return categories.find(c => c.id === catId)?.name || 'Noma\'lum';
   };
 
-  const addWall = async (data: AssetModalData) => {
+  const saveWall = async (data: AssetModalData) => {
     setSaving(true);
     try {
-      let imageUrl: string | null = null;
-      if (data.imageFile) imageUrl = await uploadAssetImage(data.imageFile, 'walls');
-      const { error } = await supabase.from('walls').insert({
-        name: data.name, color: data.color, molding_type: data.moldingType ?? 'classic',
-        image_url: imageUrl, sort_order: walls.length + 1,
-        category_id: data.categoryId || null,
-      });
-      if (error) throw error;
-      toast.success('Xona dizayni qo\'shildi');
+      let imageUrl: string | null = editTarget?.image || null;
+      if (data.imageFile) {
+        imageUrl = await uploadAssetImage(data.imageFile, 'walls');
+      } else if (!data.imagePreview) {
+        imageUrl = null;
+      }
+
+      if (editTarget) {
+        // UPDATE existing
+        const { error } = await supabase.from('walls').update({
+          name: data.name, molding_type: data.moldingType ?? 'classic',
+          image_url: imageUrl, category_id: data.categoryId || null,
+        }).eq('id', editTarget.id);
+        if (error) throw error;
+        toast.success('Xona dizayni yangilandi');
+        setEditTarget(null);
+      } else {
+        // CREATE new
+        const { error } = await supabase.from('walls').insert({
+          name: data.name, color: data.color, molding_type: data.moldingType ?? 'classic',
+          image_url: imageUrl, sort_order: walls.length + 1,
+          category_id: data.categoryId || null,
+        });
+        if (error) throw error;
+        toast.success('Xona dizayni qo\'shildi');
+      }
       setShowModal(false);
     } catch (e: any) { toast.error(e.message); }
     setSaving(false);
+  };
+
+  const openEdit = (wall: typeof walls[0]) => {
+    setEditTarget(wall);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditTarget(null);
   };
 
   const toggleWall = async (id: string, enabled: boolean) => {
     await supabase.from('walls').update({ enabled: !enabled }).eq('id', id);
   };
 
+  const editInitial = editTarget ? {
+    id: editTarget.id,
+    name: editTarget.name,
+    color: editTarget.color,
+    imageUrl: editTarget.image,
+    moldingType: editTarget.moldingType as 'classic' | 'modern' | 'ornate',
+    categoryId: editTarget.category_id || undefined,
+  } : null;
+
   return (
     <>
-      <SectionHeader title="Xona dizaynlari" count={walls.length} onAdd={() => setShowModal(true)} />
+      <SectionHeader title="Xona dizaynlari" count={walls.length} onAdd={() => { setEditTarget(null); setShowModal(true); }} />
 
       {/* Category filter */}
       <div className="flex flex-wrap gap-2 mb-6">
@@ -435,13 +472,21 @@ function WallsAdmin() {
             </div>
             <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
               <ToggleSwitch checked={wall.enabled} onChange={() => toggleWall(wall.id, wall.enabled)} />
-              <button className={`${iconBtn} hover:bg-secondary/50 text-muted-foreground/50 hover:text-foreground`}><Pencil className="w-3.5 h-3.5" /></button>
+              <button onClick={() => openEdit(wall)} className={`${iconBtn} hover:bg-gold/10 text-muted-foreground/50 hover:text-gold border border-transparent hover:border-gold/30`}><Pencil className="w-3.5 h-3.5" /></button>
               <button onClick={() => setDeleteTarget({ id: wall.id, name: wall.name })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
           </div>
         ))}
       </div>
-      <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addWall} type="wall" title="Yangi xona dizayni" saving={saving} />
+      <AssetModal
+        open={showModal}
+        onClose={closeModal}
+        onSave={saveWall}
+        type="wall"
+        title={editTarget ? 'Xona dizaynini tahrirlash' : 'Yangi xona dizayni'}
+        saving={saving}
+        initial={editInitial}
+      />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={async () => { if (deleteTarget) { await supabase.from('walls').delete().eq('id', deleteTarget.id); setDeleteTarget(null); toast.success('O\'chirildi'); } }} name={deleteTarget?.name ?? ''} />
     </>
   );

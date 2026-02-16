@@ -24,6 +24,21 @@ export interface AssetModalData {
   categoryId?: string;
 }
 
+export interface AssetModalInitial {
+  id: string;
+  name: string;
+  color?: string;
+  imageUrl?: string | null;
+  collection?: DoorCollection;
+  moldingStyle?: 'simple' | 'ornate' | 'minimal';
+  panelCount?: 2 | 3 | 4;
+  moldingType?: 'classic' | 'modern' | 'ornate';
+  pattern?: 'marble' | 'wood' | 'tile';
+  textureScale?: 'small' | 'medium' | 'large';
+  textureOrientation?: 'horizontal' | 'vertical';
+  categoryId?: string;
+}
+
 interface AssetModalProps {
   open: boolean;
   onClose: () => void;
@@ -31,9 +46,10 @@ interface AssetModalProps {
   type: AssetType;
   title: string;
   saving?: boolean;
+  initial?: AssetModalInitial | null;
 }
 
-export default function AssetModal({ open, onClose, onSave, type, title, saving }: AssetModalProps) {
+export default function AssetModal({ open, onClose, onSave, type, title, saving, initial }: AssetModalProps) {
   const { allCategories } = useShowroom();
   const [name, setName] = useState('');
   const [color, setColor] = useState(type === 'floor' ? '#6B6B6B' : '#C4B8A8');
@@ -52,7 +68,21 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
   const [categoryId, setCategoryId] = useState<string>('');
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    if (initial) {
+      setName(initial.name);
+      setColor(initial.color || (type === 'floor' ? '#6B6B6B' : '#C4B8A8'));
+      setImageFile(null);
+      setImagePreview(initial.imageUrl || null);
+      setCollection(initial.collection || 'classic');
+      setMoldingStyle(initial.moldingStyle || 'simple');
+      setPanelCount(initial.panelCount || 2);
+      setMoldingType(initial.moldingType || 'classic');
+      setPattern(initial.pattern || 'marble');
+      setTextureScale(initial.textureScale || 'medium');
+      setTextureOrientation(initial.textureOrientation || 'horizontal');
+      setCategoryId(initial.categoryId || '');
+    } else {
       setName(''); setColor(type === 'floor' ? '#6B6B6B' : '#C4B8A8');
       setImageFile(null); setImagePreview(null);
       setCollection('classic'); setMoldingStyle('simple'); setPanelCount(2);
@@ -60,7 +90,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
       setTextureScale('medium'); setTextureOrientation('horizontal');
       setCategoryId(allCategories[0]?.id || '');
     }
-  }, [open, type, allCategories]);
+  }, [open, type, allCategories, initial]);
 
   useEffect(() => {
     if (!open) return;
@@ -96,9 +126,9 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
   };
 
   const isValid = name.trim().length > 0;
+  const isEditMode = !!initial;
   if (!open) return null;
 
-  // Determine if this is the wall/room design modal — uses the premium layout
   const isWallModal = type === 'wall';
 
   return (
@@ -119,7 +149,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
         </div>
 
         <div className="flex min-h-[360px]">
-          {/* LEFT — Image (not for color type) */}
+          {/* LEFT — Image */}
           {type !== 'color' && (
             <div className="w-[280px] p-6 border-r border-border/10 flex flex-col">
               <label className={labelCls}>Rasm yuklash</label>
@@ -159,13 +189,11 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
           {/* RIGHT — Form */}
           <div className="flex-1 p-6 flex flex-col">
             <div className="space-y-5 flex-1">
-              {/* Name — always shown */}
               <div>
                 <label className={labelCls}>Nomi <span className="text-destructive/60">*</span></label>
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} autoFocus />
               </div>
 
-              {/* Color — only for non-wall types that need it */}
               {type !== 'wall' && (
                 <div>
                   <label className={labelCls}>Rang</label>
@@ -176,7 +204,6 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                 </div>
               )}
 
-              {/* Door-specific fields */}
               {type === 'door' && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
@@ -208,7 +235,6 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                 </>
               )}
 
-              {/* Wall/Room Design — clean premium layout, NO color */}
               {isWallModal && (
                 <>
                   <div>
@@ -231,7 +257,6 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                 </>
               )}
 
-              {/* Floor-specific fields */}
               {type === 'floor' && (
                 <>
                   <div>
@@ -254,7 +279,6 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
               )}
             </div>
 
-            {/* Footer buttons */}
             <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-border/10">
               <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all duration-200">Bekor qilish</button>
               <button
@@ -266,7 +290,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                     : 'bg-muted/30 text-muted-foreground/40 cursor-not-allowed'
                 }`}
               >
-                {saving ? 'Saqlanmoqda...' : 'Saqlash'}
+                {saving ? 'Saqlanmoqda...' : isEditMode ? 'Yangilash' : 'Saqlash'}
               </button>
             </div>
           </div>
