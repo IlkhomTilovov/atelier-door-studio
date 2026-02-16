@@ -3,7 +3,7 @@ import { X, Upload, Trash2 } from 'lucide-react';
 import { DoorCollection } from '@/types/showroom';
 import { useShowroom } from '@/context/ShowroomContext';
 
-const inputCls = "w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-lg px-4 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-200";
+const inputCls = "w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-300";
 const labelCls = "block text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-2";
 const selectCls = inputCls + " appearance-none cursor-pointer";
 
@@ -98,12 +98,15 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
   const isValid = name.trim().length > 0;
   if (!open) return null;
 
+  // Determine if this is the wall/room design modal — uses the premium layout
+  const isWallModal = type === 'wall';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/85 backdrop-blur-xl" onClick={onClose} />
-      <div className="relative w-full max-w-[720px] bg-card/95 backdrop-blur-2xl border border-border/40 rounded-2xl shadow-[0_32px_100px_rgba(0,0,0,0.6)] animate-scale-in overflow-hidden">
+      <div className="relative w-full max-w-[720px] bg-card/95 backdrop-blur-2xl border border-border/30 rounded-2xl shadow-[0_32px_100px_rgba(0,0,0,0.6)] animate-scale-in overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border/20">
+        <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border/15">
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 font-body mb-1">
               {type === 'door' ? 'Eshik' : type === 'wall' ? 'Xona dizayni' : type === 'floor' ? 'Pol' : 'Rang'}
@@ -116,9 +119,9 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
         </div>
 
         <div className="flex min-h-[360px]">
-          {/* LEFT — Image */}
+          {/* LEFT — Image (not for color type) */}
           {type !== 'color' && (
-            <div className="w-[280px] p-6 border-r border-border/15 flex flex-col">
+            <div className="w-[280px] p-6 border-r border-border/10 flex flex-col">
               <label className={labelCls}>Rasm yuklash</label>
               {!imagePreview ? (
                 <div
@@ -127,19 +130,19 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                   onDrop={onDrop}
                   onClick={() => fileRef.current?.click()}
                   className={`flex-1 rounded-xl border-2 border-dashed cursor-pointer flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
-                    dragOver ? 'border-gold/60 bg-gold/5' : 'border-border/30 hover:border-gold/40 hover:bg-secondary/20'
+                    dragOver ? 'border-gold/60 bg-gold/5 shadow-[0_0_24px_rgba(180,160,100,0.1)]' : 'border-border/25 hover:border-gold/40 hover:bg-secondary/15 hover:shadow-[0_0_20px_rgba(180,160,100,0.05)]'
                   }`}
                 >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${dragOver ? 'bg-gold/15 text-gold' : 'bg-secondary/40 text-muted-foreground/50'}`}>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${dragOver ? 'bg-gold/15 text-gold' : 'bg-secondary/30 text-muted-foreground/40'}`}>
                     <Upload className="w-6 h-6" />
                   </div>
                   <div className="text-center px-4">
-                    <p className="font-body text-xs text-foreground/80 mb-1">Rasmni tashlang yoki bosing</p>
-                    <p className="text-[10px] text-muted-foreground/40">PNG, JPG, SVG</p>
+                    <p className="font-body text-xs text-foreground/70 mb-1">Rasmni tashlang yoki bosing</p>
+                    <p className="text-[10px] text-muted-foreground/35">PNG, JPG, SVG</p>
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 rounded-xl overflow-hidden relative group/img bg-secondary/20">
+                <div className="flex-1 rounded-xl overflow-hidden relative group/img bg-secondary/15">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-contain p-3" />
                   <div className="absolute bottom-3 left-3 right-3 flex gap-2 opacity-0 group-hover/img:opacity-100 transition-all duration-200">
                     <button onClick={() => fileRef.current?.click()} className="flex-1 px-3 py-2 rounded-lg bg-background/80 backdrop-blur-sm text-xs font-body text-foreground hover:bg-background transition-all">Almashtirish</button>
@@ -155,19 +158,25 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
 
           {/* RIGHT — Form */}
           <div className="flex-1 p-6 flex flex-col">
-            <div className="space-y-4 flex-1">
+            <div className="space-y-5 flex-1">
+              {/* Name — always shown */}
               <div>
                 <label className={labelCls}>Nomi <span className="text-destructive/60">*</span></label>
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} autoFocus />
               </div>
-              <div>
-                <label className={labelCls}>Rang</label>
-                <div className="flex items-center gap-3">
-                  <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent flex-shrink-0" />
-                  <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1 font-mono"} maxLength={7} />
-                </div>
-              </div>
 
+              {/* Color — only for non-wall types that need it */}
+              {type !== 'wall' && (
+                <div>
+                  <label className={labelCls}>Rang</label>
+                  <div className="flex items-center gap-3">
+                    <input type="color" value={color} onChange={e => setColor(e.target.value)} className="w-12 h-12 rounded-xl border-2 border-border/40 cursor-pointer bg-transparent flex-shrink-0" />
+                    <input value={color} onChange={e => setColor(e.target.value)} className={inputCls + " flex-1 font-mono"} maxLength={7} />
+                  </div>
+                </div>
+              )}
+
+              {/* Door-specific fields */}
               {type === 'door' && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
@@ -199,7 +208,8 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                 </>
               )}
 
-              {type === 'wall' && (
+              {/* Wall/Room Design — clean premium layout, NO color */}
+              {isWallModal && (
                 <>
                   <div>
                     <label className={labelCls}>Kategoriya</label>
@@ -221,6 +231,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
                 </>
               )}
 
+              {/* Floor-specific fields */}
               {type === 'floor' && (
                 <>
                   <div>
@@ -243,14 +254,15 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving 
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-border/15">
-              <button onClick={onClose} className="px-5 py-2.5 rounded-lg font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-200">Bekor qilish</button>
+            {/* Footer buttons */}
+            <div className="flex items-center justify-end gap-3 mt-6 pt-5 border-t border-border/10">
+              <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all duration-200">Bekor qilish</button>
               <button
                 onClick={handleSave}
                 disabled={!isValid || saving}
-                className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-body text-sm tracking-wide transition-all duration-300 ${
+                className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-body text-sm tracking-wide transition-all duration-300 ${
                   isValid && !saving
-                    ? 'bg-gradient-to-r from-gold-dark to-gold text-primary-foreground shadow-[0_4px_16px_rgba(180,160,100,0.25)] hover:shadow-[0_6px_24px_rgba(180,160,100,0.35)] hover:-translate-y-0.5'
+                    ? 'bg-gradient-to-r from-gold-dark to-gold text-primary-foreground shadow-[0_4px_16px_rgba(180,160,100,0.25)] hover:shadow-[0_8px_28px_rgba(180,160,100,0.4)] hover:-translate-y-0.5'
                     : 'bg-muted/30 text-muted-foreground/40 cursor-not-allowed'
                 }`}
               >
