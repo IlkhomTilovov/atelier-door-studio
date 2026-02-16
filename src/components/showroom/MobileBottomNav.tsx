@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ShoppingBag } from 'lucide-react';
+import OrderModal from './OrderModal';
 
 type Tab = 'kategoriya' | 'xona' | 'eshik' | 'devor' | 'pol';
 
@@ -361,6 +362,9 @@ function FloorIcon({ active }: { active: boolean }) {
 /* ── Main Mobile Bottom Nav ── */
 export default function MobileBottomNav() {
   const [activeSheet, setActiveSheet] = useState<Tab | null>(null);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const { getSelectedDoor } = useShowroom();
+  const door = getSelectedDoor();
 
   const tabs: { key: Tab; label: string; Icon: React.FC<{ active: boolean }> }[] = [
     { key: 'kategoriya', label: 'Kategoriya', Icon: CategoryIcon },
@@ -384,38 +388,20 @@ export default function MobileBottomNav() {
   return (
     <>
       {/* Bottom sheets */}
-      <BottomSheet
-        open={activeSheet === 'kategoriya'}
-        onClose={() => setActiveSheet(null)}
-        title={sheetTitle.kategoriya}
-      >
+      <BottomSheet open={activeSheet === 'kategoriya'} onClose={() => setActiveSheet(null)} title={sheetTitle.kategoriya}>
         <CategoryPicker />
       </BottomSheet>
-
-      <BottomSheet
-        open={activeSheet === 'xona'}
-        onClose={() => setActiveSheet(null)}
-        title={sheetTitle.xona}
-      >
+      <BottomSheet open={activeSheet === 'xona'} onClose={() => setActiveSheet(null)} title={sheetTitle.xona}>
         <RoomDesignPicker />
       </BottomSheet>
-
-      <BottomSheet
-        open={activeSheet === 'eshik'}
-        onClose={() => setActiveSheet(null)}
-        title={sheetTitle.eshik}
-      >
+      <BottomSheet open={activeSheet === 'eshik'} onClose={() => setActiveSheet(null)} title={sheetTitle.eshik}>
         <DoorPicker />
       </BottomSheet>
-
-
-      <BottomSheet
-        open={activeSheet === 'pol'}
-        onClose={() => setActiveSheet(null)}
-        title={sheetTitle.pol}
-      >
+      <BottomSheet open={activeSheet === 'pol'} onClose={() => setActiveSheet(null)} title={sheetTitle.pol}>
         <FloorPicker />
       </BottomSheet>
+
+      <OrderModal open={orderOpen} onClose={() => setOrderOpen(false)} />
 
       {/* Fixed bottom tab bar */}
       <div
@@ -451,8 +437,21 @@ export default function MobileBottomNav() {
             </button>
           );
         })}
+        {/* Order button */}
+        {door && (
+          <button
+            onClick={() => setOrderOpen(true)}
+            className="flex flex-col items-center gap-0.5 flex-1 py-2 transition-all duration-300 min-w-0"
+          >
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(40 55% 42%), hsl(40 65% 55%))' }}>
+              <ShoppingBag className="w-3.5 h-3.5" style={{ color: 'hsl(220 20% 10%)' }} />
+            </div>
+            <span className="font-body text-[9px] tracking-wide whitespace-nowrap" style={{ color: '#D4AF37', fontWeight: 500 }}>
+              Buyurtma
+            </span>
+          </button>
+        )}
       </div>
     </>
   );
 }
-

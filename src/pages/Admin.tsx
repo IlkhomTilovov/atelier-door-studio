@@ -8,7 +8,10 @@ import { uploadAssetImage } from '@/hooks/useShowroomData';
 import AssetModal, { AssetModalData, AssetModalInitial } from '@/components/admin/AssetModal';
 import { toast } from 'sonner';
 
-type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'assignments';
+import TelegramSettings from '@/components/admin/TelegramSettings';
+import OrdersAdmin from '@/components/admin/OrdersAdmin';
+
+type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'assignments' | 'orders' | 'settings';
 
 const cardCls = "group relative bg-card/60 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-card/80 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 border border-border/40";
 const iconBtn = "p-2 rounded-lg transition-all duration-200 hover:scale-110";
@@ -122,6 +125,8 @@ export default function Admin() {
     doors: 'Eshiklar',
     floors: 'Pollar',
     assignments: 'Bog\'lash',
+    orders: '📦 Buyurtmalar',
+    settings: '⚙️ Sozlamalar',
   };
 
   return (
@@ -148,6 +153,8 @@ export default function Admin() {
         {tab === 'doors' && <DoorsAdmin />}
         {tab === 'floors' && <FloorsAdmin />}
         {tab === 'assignments' && <AssignmentsAdmin />}
+        {tab === 'orders' && <OrdersAdmin />}
+        {tab === 'settings' && <TelegramSettings />}
       </div>
     </div>
   );
