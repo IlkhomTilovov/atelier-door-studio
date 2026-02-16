@@ -33,13 +33,13 @@ export default function CenterScene() {
       {/* Scene container */}
       <div
         className="absolute inset-0 transition-showroom"
+        style={isMobile ? { top: '5%', bottom: '0' } : undefined}
       >
         {/* Wall layer */}
         <div
           className="absolute inset-0 transition-showroom"
           style={{
             bottom: '18%',
-            top: isMobile ? '-22%' : '0',
           }}
         >
           {wall?.image ? (
