@@ -31,43 +31,8 @@ export default function RightPanel() {
           className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-auto transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
         >
           {/* ── Door Color ── */}
-          <GlassSectionHeader label="Eshik rangi" />
-          <div className="flex flex-wrap gap-3 mb-2">
-            {filteredColors.length === 0 && (
-              <p className="text-xs w-full text-center py-2" style={{ color: 'hsl(40 10% 40%)' }}>
-                Rang tayinlanmagan
-              </p>
-            )}
-            {filteredColors.map(color => {
-              const active = state.selectedDoorColor === color.id;
-              return (
-                <Tooltip key={color.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => selectDoorColor(color.id)}
-                      className="group flex flex-col items-center gap-1.5 transition-all duration-500"
-                    >
-                      <div
-                        className="w-11 h-11 rounded-xl transition-all duration-500"
-                        style={{
-                          backgroundColor: color.hex,
-                          boxShadow: active
-                            ? '0 0 0 2px hsl(40 60% 55%), 0 0 16px hsl(40 60% 55% / 0.25)'
-                            : 'inset 0 1px 2px rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.3)',
-                          transform: active ? 'scale(1.12)' : undefined,
-                        }}
-                      />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-card/90 backdrop-blur-sm border-border/50 text-xs">
-                    {color.name} — {color.hex}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
 
-          <GlassDivider />
+
 
           {/* ── Floor Material ── */}
           <GlassSectionHeader label="Pol materiali" />
