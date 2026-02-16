@@ -25,29 +25,24 @@ export default function CenterScene() {
   return (
     <div
       className="absolute inset-0 flex items-end justify-center overflow-hidden bg-scene"
-      style={isMobile ? { bottom: '70px' } : undefined}
+      style={isMobile ? { bottom: '64px' } : undefined}
     >
-      {/* Wall layer */}
+      {/* Wall layer — fixed structural container, image is texture only */}
       <div
         className="absolute inset-0 transition-showroom"
         style={{
-          bottom: isMobile ? '18%' : '16%',
+          bottom: '16%',
           backgroundColor: wallColor,
+          ...(wall?.image
+            ? {
+                backgroundImage: `url(${wall.image})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center bottom',
+                backgroundRepeat: 'no-repeat',
+              }
+            : {}),
         }}
-      >
-        {wall?.image && (
-          <img
-            src={wall.image}
-            alt=""
-            className="w-full transition-showroom"
-            style={{
-              height: '100%',
-              objectFit: 'contain',
-              objectPosition: 'center bottom',
-            }}
-          />
-        )}
-      </div>
+      />
 
       {/* Wall moldings (only when no wall image) */}
       {!wall?.image && (
@@ -57,15 +52,16 @@ export default function CenterScene() {
         </>
       )}
 
-      {/* Door layer */}
+
+
+      {/* Door layer — sized relative to wall, not image */}
       <div
         className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
         style={{
-          bottom: isMobile ? '18%' : '16%',
-          height: isMobile ? '60%' : '62%',
-          minHeight: isMobile ? '55%' : '70%',
-          maxHeight: isMobile ? '75%' : '82%',
-          width: 'auto',
+          bottom: '16%',
+          height: isMobile ? '55%' : '62%',
+          minHeight: isMobile ? '50%' : '70%',
+          maxHeight: isMobile ? '70%' : '82%',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -93,7 +89,7 @@ export default function CenterScene() {
       <div
         className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
         style={{
-          height: isMobile ? '18%' : '16%',
+          height: '16%',
           perspective: '450px',
           perspectiveOrigin: 'center top',
         }}
