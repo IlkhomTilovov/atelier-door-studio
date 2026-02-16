@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import OrderModal from './OrderModal';
 
 export default function RightPanel() {
-  const { state, filteredColors, filteredFloors, selectDoorColor, selectFloor } = useShowroom();
+  const { state, filteredFloors, selectFloor, getSelectedDoor } = useShowroom();
   const [collapsed, setCollapsed] = useState(false);
+  const [orderOpen, setOrderOpen] = useState(false);
+  const door = getSelectedDoor();
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -30,9 +33,25 @@ export default function RightPanel() {
         <div
           className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-auto transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
         >
-          {/* ── Door Color ── */}
-
-
+          {/* ── Order Button ── */}
+          {door && (
+            <>
+              <button
+                onClick={() => setOrderOpen(true)}
+                className="w-full py-3 rounded-xl font-body text-sm tracking-wide flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 mb-5"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(40 55% 42%), hsl(40 65% 55%))',
+                  color: 'hsl(220 20% 10%)',
+                  boxShadow: '0 4px 20px hsl(40 60% 50% / 0.3), 0 0 0 1px hsl(40 60% 55% / 0.1)',
+                  fontWeight: 500,
+                }}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Buyurtma berish
+              </button>
+              <GlassDivider />
+            </>
+          )}
 
           {/* ── Floor Material ── */}
           <GlassSectionHeader label="Pol materiali" />
@@ -92,6 +111,8 @@ export default function RightPanel() {
           </div>
         </div>
       </div>
+
+      <OrderModal open={orderOpen} onClose={() => setOrderOpen(false)} />
     </TooltipProvider>
   );
 }
@@ -109,7 +130,7 @@ function GlassSectionHeader({ label }: { label: string }) {
 
 function GlassDivider() {
   return (
-    <div className="my-5 flex items-center gap-3">
+    <div className="my-3 flex items-center gap-3">
       <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.1)' }} />
       <div className="w-1 h-1 rounded-full" style={{ background: 'hsl(40 60% 55% / 0.25)' }} />
       <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.1)' }} />
