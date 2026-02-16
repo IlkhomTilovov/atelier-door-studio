@@ -56,7 +56,7 @@ export default function CenterScene() {
 
       {/* Door layer — sized relative to wall, not image */}
       <div
-        className={`absolute z-20 transition-showroom ${isMobile ? 'left-[35%] -translate-x-1/2' : 'left-1/2 -translate-x-1/2'}`}
+        className={`absolute z-20 transition-showroom ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}
         style={{
           bottom: '16%',
           height: isMobile ? '55%' : '62%',
