@@ -119,8 +119,8 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
   const handleSave = () => {
     if (!name.trim() || saving) return;
     const data: AssetModalData = { name: name.trim(), color, imageFile, imagePreview };
-    if (type === 'door') { data.collection = collection; data.moldingStyle = moldingStyle; data.panelCount = panelCount; }
-    if (type === 'wall') { data.moldingType = moldingType; data.categoryId = categoryId || undefined; }
+    if (type === 'door') { data.collection = collection; data.panelCount = panelCount; data.categoryId = categoryId || undefined; }
+    if (type === 'wall') { data.categoryId = categoryId || undefined; }
     if (type === 'floor') { data.pattern = pattern; data.textureScale = textureScale; data.textureOrientation = 'horizontal'; }
     onSave(data);
   };
@@ -194,7 +194,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} autoFocus />
               </div>
 
-              {type !== 'wall' && (
+              {type !== 'wall' && type !== 'door' && (
                 <div>
                   <label className={labelCls}>Rang</label>
                   <div className="flex items-center gap-3">
@@ -206,23 +206,14 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
 
               {type === 'door' && (
                 <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className={labelCls}>Kategoriya</label>
-                      <select value={collection} onChange={e => setCollection(e.target.value as DoorCollection)} className={selectCls}>
-                        <option value="classic">Klassik</option>
-                        <option value="neo-classic">Neo-Klassik</option>
-                        <option value="luxury">Lyuks</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelCls}>Molding</label>
-                      <select value={moldingStyle} onChange={e => setMoldingStyle(e.target.value as any)} className={selectCls}>
-                        <option value="simple">Oddiy</option>
-                        <option value="ornate">Bezakli</option>
-                        <option value="minimal">Minimal</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className={labelCls}>Kategoriya</label>
+                    <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className={selectCls}>
+                      <option value="">Kategoriyasiz</option>
+                      {allCategories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className={labelCls}>Panellar soni</label>
