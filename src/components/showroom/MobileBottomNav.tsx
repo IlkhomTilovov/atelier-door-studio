@@ -147,7 +147,7 @@ function RoomDesignPicker() {
                 }}
               >
                 {wall.image ? (
-                  <img src={wall.image} alt="" className="w-full h-full object-cover" />
+                  <img src={wall.image} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-full h-full" style={{ backgroundColor: wall.color }} />
                 )}
@@ -194,7 +194,7 @@ function DoorPicker() {
                 }}
               >
                 {door.image ? (
-                  <img src={door.image} alt={door.name} className="h-full w-auto object-contain" />
+                  <img src={door.image} alt={door.name} className="h-full w-auto object-contain" loading="lazy" decoding="async" />
                 ) : (
                   <span className="font-display text-lg" style={{ color: 'hsl(40 30% 40%)' }}>⊞</span>
                 )}
@@ -289,7 +289,7 @@ function FloorPicker() {
                 }}
               >
                 {floor.image ? (
-                  <img src={floor.image} alt="" className="w-full h-full object-cover" />
+                  <img src={floor.image} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-full h-full" style={{ backgroundColor: floor.color }} />
                 )}
@@ -410,10 +410,10 @@ export default function MobileBottomNav() {
           height: '70px',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'linear-gradient(180deg, hsl(220 20% 11% / 0.92) 0%, hsl(220 18% 8% / 0.98) 100%)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           borderTop: '1px solid hsl(40 60% 55% / 0.08)',
-          boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.3)',
         }}
       >
         {tabs.map(({ key, label, Icon }) => {

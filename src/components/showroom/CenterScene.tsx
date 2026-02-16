@@ -1,6 +1,7 @@
 import { useShowroom } from '@/context/ShowroomContext';
 import { TextureScale } from '@/types/showroom';
 import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
+import { getOptimizedUrl, getSrcSet, IMAGE_SIZES, gpuAccelStyle } from '@/lib/image-utils';
 
 export default function CenterScene() {
   const isMobile = useIsMobile();
@@ -23,39 +24,55 @@ export default function CenterScene() {
   const doorLight = adjustBrightness(doorHex, 8);
   const doorDark = adjustBrightness(doorHex, -12);
 
+  // Responsive image size
+  const imgSize = isMobile ? IMAGE_SIZES.mobile : isTablet ? IMAGE_SIZES.tablet : IMAGE_SIZES.desktop;
+
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{
-        backgroundColor: '#0a0a0a',
-      }}
+      style={{ backgroundColor: '#0a0a0a' }}
     >
       {/* Scene container */}
       <div
-        className="absolute inset-0 transition-showroom"
-        style={isMobile ? { top: '5%', bottom: '0' } : undefined}
+        className="absolute inset-0"
+        style={{
+          ...gpuAccelStyle,
+          transition: 'all 0.2s ease',
+          ...(isMobile ? { top: '5%', bottom: '0' } : undefined),
+        }}
       >
         {/* Wall layer */}
         <div
-          className="absolute inset-0 transition-showroom"
+          className="absolute inset-0"
           style={{
             bottom: '18%',
+            ...gpuAccelStyle,
+            transition: 'all 0.2s ease',
           }}
         >
           {wall?.image ? (
             <img
-              src={wall.image}
+              src={getOptimizedUrl(wall.image, imgSize)}
+              srcSet={getSrcSet(wall.image) || undefined}
+              sizes="100vw"
               alt=""
-              className="w-full h-full transition-showroom"
+              loading="eager"
+              decoding="async"
+              className="w-full h-full"
               style={{
                 objectFit: 'contain',
                 objectPosition: 'center bottom',
+                ...gpuAccelStyle,
+                transition: 'all 0.2s ease',
               }}
             />
           ) : (
             <div
-              className="absolute inset-0 transition-showroom"
-              style={{ backgroundColor: wallColor }}
+              className="absolute inset-0"
+              style={{
+                backgroundColor: wallColor,
+                transition: 'background-color 0.2s ease',
+              }}
             />
           )}
         </div>
@@ -68,11 +85,9 @@ export default function CenterScene() {
         </>
       )}
 
-
-
-      {/* Door layer — sized relative to wall, not image */}
+      {/* Door layer */}
       <div
-        className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
+        className="absolute left-1/2 -translate-x-1/2 z-20"
         style={{
           bottom: '18%',
           height: isMobile ? '27%' : isTablet ? '35%' : '62%',
@@ -80,13 +95,24 @@ export default function CenterScene() {
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
+          ...gpuAccelStyle,
+          transition: 'all 0.2s ease',
         }}
       >
         {door?.image ? (
           <img
-            src={door.image}
+            src={getOptimizedUrl(door.image, imgSize)}
+            srcSet={getSrcSet(door.image) || undefined}
+            sizes={isMobile ? '50vw' : '30vw'}
             alt=""
-            className="h-full w-auto object-contain transition-showroom animate-scale-in"
+            loading="eager"
+            decoding="async"
+            className="h-full w-auto"
+            style={{
+              objectFit: 'contain',
+              ...gpuAccelStyle,
+              transition: 'all 0.2s ease',
+            }}
           />
         ) : (
           <DoorComponent
@@ -99,25 +125,26 @@ export default function CenterScene() {
         )}
       </div>
 
-
-      {/* Floor layer — UV-tiled texture or generated pattern */}
+      {/* Floor layer */}
       <div
-        className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
+        className="absolute bottom-0 left-0 right-0 overflow-hidden"
         style={{
           height: '18%',
           perspective: '450px',
           perspectiveOrigin: 'center top',
+          ...gpuAccelStyle,
         }}
       >
         <div
-          className="absolute inset-0 transition-showroom"
+          className="absolute inset-0"
           style={{
             transform: 'rotateX(45deg)',
             transformOrigin: 'center top',
             backgroundColor: floorColor,
+            transition: 'all 0.2s ease',
             ...(floor?.image
               ? {
-                  backgroundImage: `url(${floor.image})`,
+                  backgroundImage: `url(${getOptimizedUrl(floor.image, imgSize)})`,
                   backgroundRepeat: 'repeat',
                   backgroundPosition: 'center top',
                   backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, isMobile),
@@ -138,14 +165,13 @@ export default function CenterScene() {
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
           }}
         />
-        
       </div>
       </div>
 
-      {/* Subtle vignette */}
+      {/* Subtle vignette — lighter for performance */}
       <div className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
+          background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.25) 100%)',
         }}
       />
     </div>
@@ -163,24 +189,26 @@ function WallMoldingPanel({ side, wallColor, wallLight, wallDark, moldingType }:
   const pos = side === 'left' ? 'left-[3%]' : 'right-[3%]';
 
   return (
-    <div className={`absolute ${pos} top-[8%] bottom-[20%] w-[18%] z-10 transition-showroom`}>
+    <div className={`absolute ${pos} top-[8%] bottom-[20%] w-[18%] z-10`} style={{ transition: 'all 0.2s ease' }}>
       <div
-        className="absolute inset-0 rounded-sm transition-showroom"
+        className="absolute inset-0 rounded-sm"
         style={{
           border: `3px solid ${wallDark}`,
-          boxShadow: `inset 0 0 0 1px ${wallLight}, 0 2px 8px rgba(0,0,0,0.15)`,
+          boxShadow: `inset 0 0 0 1px ${wallLight}, 0 2px 6px rgba(0,0,0,0.12)`,
+          transition: 'all 0.2s ease',
         }}
       />
       <div
-        className="absolute inset-[12px] rounded-sm transition-showroom"
+        className="absolute inset-[12px] rounded-sm"
         style={{
           border: `2px solid ${wallDark}`,
           boxShadow: `inset 0 0 0 1px ${wallLight}`,
+          transition: 'all 0.2s ease',
         }}
       />
       {isOrnate && (
         <div
-          className="absolute bottom-[35%] left-[12px] right-[12px] h-[20px] transition-showroom"
+          className="absolute bottom-[35%] left-[12px] right-[12px] h-[20px]"
           style={{
             borderTop: `2px solid ${wallDark}`,
             borderBottom: `2px solid ${wallDark}`,
@@ -209,7 +237,7 @@ function CornerOrnament({ position, color }: { position: string; color: string }
   };
   return (
     <div
-      className={`absolute ${posClasses[position]} w-3 h-3 transition-showroom`}
+      className={`absolute ${posClasses[position]} w-3 h-3`}
       style={{
         border: `2px solid ${color}`,
         borderRadius: '1px',
@@ -222,32 +250,19 @@ function LeafDecor({ side }: { side: 'left' | 'right' }) {
   const flip = side === 'right' ? 'scaleX(-1)' : 'none';
   return (
     <div className="relative" style={{ width: '80px', height: '160px', transform: flip }}>
-      {/* Soft backlight glow */}
-      <div className="absolute inset-0" style={{
-        background: 'radial-gradient(ellipse at center, rgba(212,195,150,0.15) 0%, transparent 70%)',
-        filter: 'blur(10px)',
-      }} />
       <svg viewBox="0 0 80 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
-        {/* Main stem */}
         <path d="M40 155 Q40 80 40 10" stroke="rgba(180,165,130,0.6)" strokeWidth="1.5" fill="none" />
-        {/* Leaf pairs — top */}
         <path d="M40 25 Q20 15 12 30 Q22 35 40 25" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
         <path d="M40 25 Q60 15 68 30 Q58 35 40 25" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
-        {/* Leaf pair 2 */}
         <path d="M40 45 Q15 30 8 50 Q20 55 40 45" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
         <path d="M40 45 Q65 30 72 50 Q60 55 40 45" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
-        {/* Leaf pair 3 — largest */}
         <path d="M40 70 Q10 50 5 75 Q18 82 40 70" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.5)" strokeWidth="0.8" />
         <path d="M40 70 Q70 50 75 75 Q62 82 40 70" fill="rgba(195,180,145,0.3)" stroke="rgba(180,165,130,0.5)" strokeWidth="0.8" />
-        {/* Leaf pair 4 */}
         <path d="M40 95 Q12 78 6 100 Q20 107 40 95" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
         <path d="M40 95 Q68 78 74 100 Q60 107 40 95" fill="rgba(195,180,145,0.25)" stroke="rgba(180,165,130,0.45)" strokeWidth="0.8" />
-        {/* Leaf pair 5 — bottom */}
         <path d="M40 120 Q18 108 10 125 Q24 130 40 120" fill="rgba(195,180,145,0.2)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
         <path d="M40 120 Q62 108 70 125 Q56 130 40 120" fill="rgba(195,180,145,0.2)" stroke="rgba(180,165,130,0.4)" strokeWidth="0.8" />
-        {/* Top ornament bud */}
         <ellipse cx="40" cy="8" rx="4" ry="6" fill="rgba(195,180,145,0.35)" stroke="rgba(180,165,130,0.5)" strokeWidth="0.8" />
-        {/* Subtle light dots on leaves */}
         <circle cx="25" cy="48" r="1.5" fill="rgba(230,220,190,0.4)" />
         <circle cx="55" cy="48" r="1.5" fill="rgba(230,220,190,0.4)" />
         <circle cx="20" cy="75" r="2" fill="rgba(230,220,190,0.35)" />
@@ -271,18 +286,18 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
 
   return (
     <div
-      className="relative transition-showroom animate-scale-in"
-      style={{ height: '100%', aspectRatio: '180 / 380' }}
+      className="relative"
+      style={{ height: '100%', aspectRatio: '180 / 380', ...gpuAccelStyle, transition: 'all 0.2s ease' }}
     >
       <div
-        className="absolute -inset-3 rounded-sm transition-showroom"
+        className="absolute -inset-3 rounded-sm"
         style={{
           backgroundColor: doorDark,
-          boxShadow: `0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 ${doorLight}`,
+          boxShadow: `0 4px 16px rgba(0,0,0,0.35), inset 0 1px 0 ${doorLight}`,
         }}
       />
       <div
-        className="absolute inset-0 rounded-sm transition-showroom"
+        className="absolute inset-0 rounded-sm"
         style={{
           backgroundColor: doorColor,
           boxShadow: `inset 2px 2px 4px ${doorLight}, inset -2px -2px 4px ${doorDark}`,
@@ -292,7 +307,7 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
           {Array.from({ length: panelCount }).map((_, i) => (
             <div
               key={i}
-              className="flex-1 rounded-sm transition-showroom"
+              className="flex-1 rounded-sm"
               style={{
                 border: `2px solid ${doorDark}`,
                 boxShadow: `inset 1px 1px 3px ${doorLight}, inset -1px -1px 3px ${doorDark}`,
@@ -301,7 +316,7 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
             >
               {isOrnate && (
                 <div
-                  className="m-2 h-[calc(100%-16px)] rounded-sm transition-showroom"
+                  className="m-2 h-[calc(100%-16px)] rounded-sm"
                   style={{
                     border: `1px solid ${doorDark}`,
                     boxShadow: `inset 0.5px 0.5px 2px ${doorLight}`,
@@ -311,7 +326,7 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
             </div>
           ))}
         </div>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 transition-showroom" style={{ zIndex: 5 }}>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2" style={{ zIndex: 5 }}>
           <div
             className="w-2 h-8 rounded-full"
             style={{
@@ -329,7 +344,6 @@ function DoorComponent({ doorColor, doorLight, doorDark, moldingStyle, panelCoun
   );
 }
 
-/** UV-style texture sizing — always horizontal, like real floor materials */
 function getFloorTextureSize(
   pattern: string,
   scale: TextureScale = 'medium',
@@ -341,10 +355,8 @@ function getFloorTextureSize(
     large: 1,
   };
   const m = scaleMultipliers[scale] * (mobile ? 0.5 : 1);
-
   const w = pattern === 'wood' ? 120 * m : 200 * m;
   const h = pattern === 'wood' ? 800 * m : 200 * m;
-
   return `${w}px ${h}px`;
 }
 
