@@ -35,8 +35,8 @@ export default function CenterScene() {
         className="absolute transition-showroom"
         style={isMobile ? {
           left: 0, right: 0,
-          top: '8%',
-          bottom: '8%',
+          top: 0,
+          bottom: 0,
         } : {
           inset: 0,
         }}
@@ -46,11 +46,11 @@ export default function CenterScene() {
           className="absolute inset-0 transition-showroom"
           style={{
           bottom: isMobile ? '18%' : '16%',
-          backgroundColor: wallColor,
+           backgroundColor: isMobile ? '#0a0a0a' : wallColor,
           ...(wall?.image
             ? {
                 backgroundImage: `url(${wall.image})`,
-                backgroundSize: 'contain',
+                backgroundSize: isMobile ? 'cover' : 'contain',
                 backgroundPosition: 'center bottom',
                 backgroundRepeat: 'no-repeat',
               }
