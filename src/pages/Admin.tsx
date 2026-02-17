@@ -247,11 +247,10 @@ function CategoriesAdmin() {
 // ═══════════════════════ Doors ═══════════════════════
 
 function DoorsAdmin() {
-  const { allDoors: doors, allColors: colors, doorCategories } = useShowroom();
+  const { allDoors: doors, doorCategories } = useShowroom();
   const [showDoorModal, setShowDoorModal] = useState(false);
-  const [showColorModal, setShowColorModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; type: 'door' | 'color' } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [editTarget, setEditTarget] = useState<typeof doors[0] | null>(null);
 
   const addDoor = async (data: AssetModalData) => {
@@ -295,31 +294,15 @@ function DoorsAdmin() {
     setSaving(false);
   };
 
-  const addColor = async (data: AssetModalData) => {
-    setSaving(true);
-    try {
-      const { error } = await supabase.from('door_colors').insert({
-        name: data.name, hex: data.color, sort_order: colors.length + 1,
-      });
-      if (error) throw error;
-      toast.success('Rang qo\'shildi');
-      setShowColorModal(false);
-    } catch (e: any) { toast.error(e.message); }
-    setSaving(false);
-  };
 
   const toggleDoor = async (id: string, enabled: boolean) => {
     await supabase.from('doors').update({ enabled: !enabled }).eq('id', id);
   };
 
-  const toggleColor = async (id: string, enabled: boolean) => {
-    await supabase.from('door_colors').update({ enabled: !enabled }).eq('id', id);
-  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    if (deleteTarget.type === 'door') await supabase.from('doors').delete().eq('id', deleteTarget.id);
-    else await supabase.from('door_colors').delete().eq('id', deleteTarget.id);
+    await supabase.from('doors').delete().eq('id', deleteTarget.id);
     setDeleteTarget(null);
     toast.success('O\'chirildi');
   };
@@ -384,31 +367,15 @@ function DoorsAdmin() {
               <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
                 <ToggleSwitch checked={door.enabled} onChange={() => toggleDoor(door.id, door.enabled)} />
                 <button onClick={() => openEdit(door)} className={`${iconBtn} hover:bg-gold/10 text-muted-foreground/50 hover:text-gold border border-transparent hover:border-gold/30`}><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={() => setDeleteTarget({ id: door.id, name: door.name, type: 'door' })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => setDeleteTarget({ id: door.id, name: door.name })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           );
         })}
       </div>
 
-      <SectionHeader title="Eshik ranglari" count={colors.length} onAdd={() => setShowColorModal(true)} />
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {colors.map(color => (
-          <div key={color.id} className={cardCls + " text-center"}>
-            <Swatch color={color.hex} size="lg" />
-            <p className="font-body text-sm text-foreground mt-3 mb-1">{color.name}</p>
-            <p className="text-[10px] text-muted-foreground/50 font-mono mb-3">{color.hex}</p>
-            <StatusBadge active={color.enabled} />
-            <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-border/20">
-              <ToggleSwitch checked={color.enabled} onChange={() => toggleColor(color.id, color.enabled)} />
-              <button onClick={() => setDeleteTarget({ id: color.id, name: color.name, type: 'color' })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
-            </div>
-          </div>
-        ))}
-      </div>
 
       <AssetModal open={showDoorModal} onClose={closeModal} onSave={addDoor} type="door" title={editTarget ? 'Eshik modelini tahrirlash' : 'Yangi eshik modeli'} saving={saving} initial={editInitial} />
-      <AssetModal open={showColorModal} onClose={() => setShowColorModal(false)} onSave={addColor} type="color" title="Yangi rang" saving={saving} />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} name={deleteTarget?.name ?? ''} />
     </>
   );
