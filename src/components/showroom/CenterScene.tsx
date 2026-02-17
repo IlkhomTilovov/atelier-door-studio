@@ -23,24 +23,147 @@ export default function CenterScene() {
   const doorLight = adjustBrightness(doorHex, 8);
   const doorDark = adjustBrightness(doorHex, -12);
 
+  if (isMobile) {
+    return (
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ backgroundColor: '#0a0a0a' }}
+      >
+        {/* Mobile centered scene wrapper */}
+        <div
+          style={{
+            width: '100%',
+            height: 'calc(100% - 80px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Scene content — wall + door + floor as one centered block */}
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              maxHeight: '100%',
+            }}
+          >
+            {/* Wall layer */}
+            <div
+              className="absolute inset-0 transition-showroom"
+              style={{ bottom: '18%' }}
+            >
+              {wall?.image ? (
+                <img
+                  src={wall.image}
+                  alt=""
+                  className="w-full h-full transition-showroom"
+                  style={{
+                    objectFit: 'contain',
+                    objectPosition: 'center center',
+                  }}
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 transition-showroom"
+                  style={{ backgroundColor: wallColor }}
+                />
+              )}
+            </div>
+
+            {/* Door layer */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
+              style={{
+                bottom: '18%',
+                height: '27%',
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+              }}
+            >
+              {door?.image ? (
+                <img
+                  src={door.image}
+                  alt=""
+                  className="h-full w-auto object-contain transition-showroom animate-scale-in"
+                />
+              ) : (
+                <DoorComponent
+                  doorColor={doorHex}
+                  doorLight={doorLight}
+                  doorDark={doorDark}
+                  moldingStyle={moldingStyle}
+                  panelCount={panelCount}
+                />
+              )}
+            </div>
+
+            {/* Floor layer */}
+            <div
+              className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
+              style={{
+                height: '18%',
+                perspective: '450px',
+                perspectiveOrigin: 'center top',
+              }}
+            >
+              <div
+                className="absolute inset-0 transition-showroom"
+                style={{
+                  transform: 'rotateX(45deg)',
+                  transformOrigin: 'center top',
+                  backgroundColor: floorColor,
+                  ...(floor?.image
+                    ? {
+                        backgroundImage: `url(${floor.image})`,
+                        backgroundRepeat: 'repeat',
+                        backgroundPosition: 'center top',
+                        backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, true),
+                      }
+                    : {
+                        backgroundImage: floor?.pattern === 'marble'
+                          ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
+                          : floor?.pattern === 'wood'
+                          ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
+                          : undefined,
+                      }),
+                }}
+              />
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Subtle vignette */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Desktop / Tablet
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{
-        backgroundColor: '#0a0a0a',
-      }}
+      style={{ backgroundColor: '#0a0a0a' }}
     >
       {/* Scene container */}
-      <div
-        className="absolute inset-0 transition-showroom"
-        style={isMobile ? { top: '-8%', bottom: '0' } : undefined}
-      >
+      <div className="absolute inset-0 transition-showroom">
         {/* Wall layer */}
         <div
           className="absolute inset-0 transition-showroom"
-          style={{
-            bottom: '18%',
-          }}
+          style={{ bottom: '18%' }}
         >
           {wall?.image ? (
             <img
@@ -60,86 +183,81 @@ export default function CenterScene() {
           )}
         </div>
 
-      {/* Wall moldings (only when no wall image) */}
-      {!wall?.image && !isMobile && (
-        <>
-          <WallMoldingPanel side="left" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
-          <WallMoldingPanel side="right" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
-        </>
-      )}
-
-
-
-      {/* Door layer — sized relative to wall, not image */}
-      <div
-        className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
-        style={{
-          bottom: '18%',
-          height: isMobile ? '27%' : isTablet ? '35%' : '62%',
-          maxWidth: isTablet ? '420px' : undefined,
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-        }}
-      >
-        {door?.image ? (
-          <img
-            src={door.image}
-            alt=""
-            className="h-full w-auto object-contain transition-showroom animate-scale-in"
-          />
-        ) : (
-          <DoorComponent
-            doorColor={doorHex}
-            doorLight={doorLight}
-            doorDark={doorDark}
-            moldingStyle={moldingStyle}
-            panelCount={panelCount}
-          />
+        {/* Wall moldings (only when no wall image) */}
+        {!wall?.image && !isMobile && (
+          <>
+            <WallMoldingPanel side="left" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
+            <WallMoldingPanel side="right" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
+          </>
         )}
-      </div>
 
+        {/* Door layer */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 z-20 transition-showroom"
+          style={{
+            bottom: '18%',
+            height: isTablet ? '35%' : '62%',
+            maxWidth: isTablet ? '420px' : undefined,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+          }}
+        >
+          {door?.image ? (
+            <img
+              src={door.image}
+              alt=""
+              className="h-full w-auto object-contain transition-showroom animate-scale-in"
+            />
+          ) : (
+            <DoorComponent
+              doorColor={doorHex}
+              doorLight={doorLight}
+              doorDark={doorDark}
+              moldingStyle={moldingStyle}
+              panelCount={panelCount}
+            />
+          )}
+        </div>
 
-      {/* Floor layer — UV-tiled texture or generated pattern */}
-      <div
-        className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
-        style={{
-          height: '18%',
-          perspective: '450px',
-          perspectiveOrigin: 'center top',
-        }}
-      >
+        {/* Floor layer */}
         <div
-          className="absolute inset-0 transition-showroom"
+          className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
           style={{
-            transform: 'rotateX(45deg)',
-            transformOrigin: 'center top',
-            backgroundColor: floorColor,
-            ...(floor?.image
-              ? {
-                  backgroundImage: `url(${floor.image})`,
-                  backgroundRepeat: 'repeat',
-                  backgroundPosition: 'center top',
-                  backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, isMobile),
-                }
-              : {
-                  backgroundImage: floor?.pattern === 'marble'
-                    ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
-                    : floor?.pattern === 'wood'
-                    ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
-                    : undefined,
-                }),
+            height: '18%',
+            perspective: '450px',
+            perspectiveOrigin: 'center top',
           }}
-        />
-        {/* Depth gradient overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
-          }}
-        />
-        
-      </div>
+        >
+          <div
+            className="absolute inset-0 transition-showroom"
+            style={{
+              transform: 'rotateX(45deg)',
+              transformOrigin: 'center top',
+              backgroundColor: floorColor,
+              ...(floor?.image
+                ? {
+                    backgroundImage: `url(${floor.image})`,
+                    backgroundRepeat: 'repeat',
+                    backgroundPosition: 'center top',
+                    backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, false),
+                  }
+                : {
+                    backgroundImage: floor?.pattern === 'marble'
+                      ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
+                      : floor?.pattern === 'wood'
+                      ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
+                      : undefined,
+                  }),
+            }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
+            }}
+          />
+        </div>
       </div>
 
       {/* Subtle vignette */}
