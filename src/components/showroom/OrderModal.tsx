@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useShowroom } from '@/context/ShowroomContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -99,8 +100,8 @@ export default function OrderModal({ open, onClose }: Props) {
 
   const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 font-body text-sm text-foreground placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-[hsl(40,60%,55%)]/40 focus:border-[hsl(40,60%,55%)]/30 transition-all duration-200";
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center" onClick={(e) => e.stopPropagation()}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
 
       <div
@@ -295,6 +296,7 @@ export default function OrderModal({ open, onClose }: Props) {
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
