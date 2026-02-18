@@ -35,110 +35,13 @@ export default function CenterScene() {
         className="absolute inset-0 transition-showroom"
         style={isMobile ? { top: '-8%', bottom: '0' } : undefined}
       >
-        {/* Wall layer */}
-        <div
-          className="absolute inset-0 transition-showroom"
-          style={{
-            bottom: '18%',
-          }}
-        >
-          {wall?.image ? (
-            <img
-              src={wall.image}
-              alt=""
-              className="w-full h-full transition-showroom"
-              style={{
-                objectFit: 'contain',
-                objectPosition: 'center bottom',
-              }}
-            />
-          ) : (
-            <div
-              className="absolute inset-0 transition-showroom"
-              style={{ backgroundColor: wallColor }}
-            />
-          )}
-        </div>
-
-      {/* Wall moldings (only when no wall image) */}
-      {!wall?.image && !isMobile && (
-        <>
-          <WallMoldingPanel side="left" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
-          <WallMoldingPanel side="right" wallColor={wallColor} wallLight={wallLight} wallDark={wallDark} moldingType={wall?.moldingType ?? 'classic'} />
-        </>
-      )}
-
-
-
-      {/* Door layer — sized relative to wall, not image */}
-      <div
-        className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
-        style={{
-          bottom: '18%',
-          height: isMobile ? '27%' : isTablet ? '35%' : '62%',
-          maxWidth: isTablet ? '420px' : undefined,
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-        }}
-      >
-        {door?.image ? (
-          <img
-            src={door.image}
-            alt=""
-            className="h-full w-auto object-contain transition-showroom animate-scale-in"
-          />
-        ) : (
-          <DoorComponent
-            doorColor={doorHex}
-            doorLight={doorLight}
-            doorDark={doorDark}
-            moldingStyle={moldingStyle}
-            panelCount={panelCount}
-          />
-        )}
-      </div>
-
-
-      {/* Floor layer — UV-tiled texture or generated pattern */}
-      <div
-        className="absolute bottom-0 left-0 right-0 transition-showroom overflow-hidden"
-        style={{
-          height: '18%',
-          perspective: '450px',
-          perspectiveOrigin: 'center top',
-        }}
-      >
-        <div
-          className="absolute inset-0 transition-showroom"
-          style={{
-            transform: 'rotateX(45deg)',
-            transformOrigin: 'center top',
-            backgroundColor: floorColor,
-            ...(floor?.image
-              ? {
-                  backgroundImage: `url(${floor.image})`,
-                  backgroundRepeat: 'repeat',
-                  backgroundPosition: 'center top',
-                  backgroundSize: getFloorTextureSize(floor.pattern, floor.textureScale, isMobile),
-                }
-              : {
-                  backgroundImage: floor?.pattern === 'marble'
-                    ? `linear-gradient(135deg, ${adjustBrightness(floorColor, 5)} 25%, transparent 25%), linear-gradient(225deg, ${adjustBrightness(floorColor, 8)} 25%, transparent 25%)`
-                    : floor?.pattern === 'wood'
-                    ? `repeating-linear-gradient(90deg, ${floorColor} 0px, ${adjustBrightness(floorColor, 5)} 3px, ${floorColor} 6px)`
-                    : undefined,
-                }),
-          }}
+      {/* Full room scene image — centered */}
+      <div className="absolute inset-0 flex items-center justify-center transition-showroom">
+        <img
+          src="/images/room-scene.png"
+          alt=""
+          className="max-w-full max-h-full object-contain transition-showroom"
         />
-        {/* Depth gradient overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)',
-          }}
-        />
-        
       </div>
       </div>
 
