@@ -33,7 +33,7 @@ export default function CenterScene() {
       {/* Scene container */}
       <div
         className="absolute inset-0 transition-showroom"
-        style={isMobile ? { top: '-18%', bottom: '0' } : undefined}
+        style={isMobile ? { top: '-8%', bottom: '0' } : undefined}
       >
         {/* Wall layer */}
         <div
