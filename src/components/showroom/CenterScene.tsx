@@ -30,10 +30,21 @@ export default function CenterScene() {
         backgroundColor: '#0a0a0a',
       }}
     >
-      {/* Scene container */}
+      {/* Mobile: show single centered image */}
+      {isMobile ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img
+            src="/images/showroom-scene.png"
+            alt="Showroom"
+            className="max-w-full max-h-full object-contain"
+          />
+        </div>
+      ) : null}
+
+      {/* Scene container (desktop/tablet only) */}
       <div
         className="absolute inset-0 transition-showroom"
-        style={isMobile ? { top: '-8%', bottom: '0' } : undefined}
+        style={isMobile ? { display: 'none' } : undefined}
       >
         {/* Wall layer */}
         <div
