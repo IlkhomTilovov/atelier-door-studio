@@ -24,6 +24,7 @@ interface DoorFrameRow {
   name: string;
   image_url?: string | null;
   scale?: number | string | null;
+  offset_y?: number | string | null;
   enabled: boolean;
 }
 
@@ -75,6 +76,7 @@ function mapFrame(row: DoorFrameRow): DoorFrame {
     name: row.name,
     image: row.image_url ?? null,
     scale: row.scale != null ? Number(row.scale) : 1.15,
+    offsetY: row.offset_y != null ? Number(row.offset_y) : 0,
     enabled: row.enabled,
   };
 }

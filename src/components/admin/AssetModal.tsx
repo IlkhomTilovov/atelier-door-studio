@@ -28,6 +28,7 @@ export interface AssetModalData {
   categoryId?: string;
   categoryIds?: string[];
   frameScale?: number;
+  frameOffsetY?: number;
 }
 
 export interface AssetModalInitial {
@@ -45,6 +46,7 @@ export interface AssetModalInitial {
   categoryId?: string;
   categoryIds?: string[];
   frameScale?: number | null;
+  frameOffsetY?: number | null;
 }
 
 interface AssetModalProps {
@@ -79,6 +81,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
   const catDropdownRef = useRef<HTMLDivElement>(null);
 
   const [frameScale, setFrameScale] = useState<number>(1.15);
+  const [frameOffsetY, setFrameOffsetY] = useState<number>(0);
 
   useEffect(() => {
     if (!open) return;
@@ -97,6 +100,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setCategoryId(initial.categoryId || '');
       setCategoryIds(initial.categoryIds || []);
       setFrameScale(initial.frameScale ?? 1.15);
+      setFrameOffsetY(initial.frameOffsetY ?? 0);
     } else {
       setName(''); setColor(type === 'floor' ? '#6B6B6B' : '#C4B8A8');
       setImageFile(null); setImagePreview(null);
@@ -106,6 +110,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setCategoryId(allCategories[0]?.id || '');
       setCategoryIds([]);
       setFrameScale(1.15);
+      setFrameOffsetY(0);
     }
   }, [open, type, allCategories, initial]);
 
@@ -151,9 +156,9 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
     }
     if (type === 'wall') { data.categoryId = categoryId || undefined; }
     if (type === 'floor') { data.pattern = pattern; data.textureScale = textureScale; data.textureOrientation = 'horizontal'; }
-    if (type === 'frame') { data.frameScale = frameScale; }
+    if (type === 'frame') { data.frameScale = frameScale; data.frameOffsetY = frameOffsetY; }
     onSave(data);
-  }, [name, saving, color, imageFile, imagePreview, type, collection, panelCount, categoryIds, categoryId, pattern, textureScale, onSave, frameScale]);
+  }, [name, saving, color, imageFile, imagePreview, type, collection, panelCount, categoryIds, categoryId, pattern, textureScale, onSave, frameScale, frameOffsetY]);
 
   const handler = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') { if (catDropdownOpen) { setCatDropdownOpen(false); return; } onClose(); }
@@ -336,31 +341,53 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
               )}
 
               {type === 'frame' && (
-                <div>
-                  <label className={labelCls}>
-                    Ramka o'lchami (eshikga nisbatan)
-                    <span className="ml-2 text-gold/70 font-mono normal-case tracking-normal">{Math.round(frameScale * 100)}%</span>
-                  </label>
-                  <input
-                    type="range"
-                    min={1.0}
-                    max={1.5}
-                    step={0.01}
-                    value={frameScale}
-                    onChange={e => setFrameScale(Number(e.target.value))}
-                    className="w-full accent-gold cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1 font-mono">
-                    <span>100%</span>
-                    <span>110%</span>
-                    <span>120%</span>
-                    <span>130%</span>
-                    <span>150%</span>
+                <>
+                  <div>
+                    <label className={labelCls}>
+                      Ramka o'lchami (eshikga nisbatan)
+                      <span className="ml-2 text-gold/70 font-mono normal-case tracking-normal">{Math.round(frameScale * 100)}%</span>
+                    </label>
+                    <input
+                      type="range"
+                      min={1.0}
+                      max={1.5}
+                      step={0.01}
+                      value={frameScale}
+                      onChange={e => setFrameScale(Number(e.target.value))}
+                      className="w-full accent-gold cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1 font-mono">
+                      <span>100%</span>
+                      <span>110%</span>
+                      <span>120%</span>
+                      <span>130%</span>
+                      <span>150%</span>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground/50 mt-3 leading-relaxed">
-                    Ramka shaffof fonli (transparent) PNG bo'lishi tavsiya etiladi — markazda eshik o'tadigan bo'sh joy bilan.
+                  <div>
+                    <label className={labelCls}>
+                      Vertikal joylashuv
+                      <span className="ml-2 text-gold/70 font-mono normal-case tracking-normal">{frameOffsetY > 0 ? '+' : ''}{frameOffsetY.toFixed(0)}%</span>
+                    </label>
+                    <input
+                      type="range"
+                      min={-30}
+                      max={30}
+                      step={1}
+                      value={frameOffsetY}
+                      onChange={e => setFrameOffsetY(Number(e.target.value))}
+                      className="w-full accent-gold cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1 font-mono">
+                      <span>-30 (yuqoriga)</span>
+                      <span>0</span>
+                      <span>+30 (pastga)</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
+                    Ramka shaffof fonli (transparent) PNG bo'lishi tavsiya etiladi. Agar kornish (yuqori bezak) eshikdan baland turgan bo'lsa, "Vertikal joylashuv"ni musbat tomonga (pastga) suring.
                   </p>
-                </div>
+                </>
               )}
 
               {isWallModal && (

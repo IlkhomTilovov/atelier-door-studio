@@ -22,6 +22,8 @@ supabase/.temp/
 
 # Local-only artifacts
 *.docx
+.claude/
+scripts/export-project-docx.mjs
 
 # Editor directories and files
 .vscode/*

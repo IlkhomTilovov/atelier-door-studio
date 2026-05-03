@@ -91,7 +91,7 @@ export default function CenterScene() {
             style={{
               left: '50%',
               bottom: 0,
-              transform: `translateX(-50%) scale(${clampFrameScale(frame.scale)})`,
+              transform: `translateX(-50%) translateY(${clampFrameOffsetY(frame.offsetY)}%) scale(${clampFrameScale(frame.scale)})`,
               transformOrigin: 'bottom center',
               filter: 'drop-shadow(0 12px 28px rgba(0,0,0,0.35))',
               zIndex: 1,
@@ -378,4 +378,9 @@ function adjustBrightness(hex: string, amount: number): string {
 function clampFrameScale(value?: number | null): number {
   const n = typeof value === 'number' && Number.isFinite(value) ? value : 1.15;
   return Math.min(1.5, Math.max(1.0, n));
+}
+
+function clampFrameOffsetY(value?: number | null): number {
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  return Math.min(30, Math.max(-30, n));
 }

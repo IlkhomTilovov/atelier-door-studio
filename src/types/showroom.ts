@@ -27,6 +27,7 @@ export interface DoorFrame {
   name: string;
   image?: string | null;
   scale: number;
+  offsetY: number;
   enabled: boolean;
 }
 

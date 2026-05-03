@@ -824,17 +824,18 @@ function FramesAdmin() {
       }
 
       const scale = data.frameScale ?? 1.15;
+      const offset_y = data.frameOffsetY ?? 0;
 
       if (editTarget) {
         const { error } = await supabase.from('door_frames').update({
-          name: data.name, image_url: imageUrl, scale,
+          name: data.name, image_url: imageUrl, scale, offset_y,
         }).eq('id', editTarget.id);
         if (error) throw error;
         toast.success('Ramka yangilandi');
         setEditTarget(null);
       } else {
         const { error } = await supabase.from('door_frames').insert({
-          name: data.name, image_url: imageUrl, scale, sort_order: frames.length + 1,
+          name: data.name, image_url: imageUrl, scale, offset_y, sort_order: frames.length + 1,
         });
         if (error) throw error;
         toast.success('Ramka qo\'shildi');
@@ -870,6 +871,7 @@ function FramesAdmin() {
     name: editTarget.name,
     imageUrl: editTarget.image,
     frameScale: editTarget.scale,
+    frameOffsetY: editTarget.offsetY,
   } : null;
 
   return (
@@ -890,7 +892,10 @@ function FramesAdmin() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm text-foreground font-medium truncate">{frame.name}</p>
-                <p className="text-xs text-muted-foreground/60 mt-0.5">{Math.round(frame.scale * 100)}% o'lcham</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">
+                  {Math.round(frame.scale * 100)}% o'lcham
+                  {frame.offsetY ? <span className="ml-2">· offset {frame.offsetY > 0 ? '+' : ''}{frame.offsetY.toFixed(0)}%</span> : null}
+                </p>
               </div>
               <StatusBadge active={frame.enabled} />
             </div>
