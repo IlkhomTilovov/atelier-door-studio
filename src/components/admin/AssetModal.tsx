@@ -112,7 +112,13 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setFrameScale(1.15);
       setFrameOffsetY(0);
     }
-  }, [open, type, allCategories, initial]);
+    // We only want to (re)populate the form when the modal opens or when
+    // the user picks a different entity to edit. The `initial` object is
+    // re-created on every parent render, so depending on it directly causes
+    // the form to reset on every keystroke / slider drag. Depending on a
+    // primitive id keeps the effect stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, type, initial?.id]);
 
   // Close category dropdown on click outside
   useEffect(() => {
