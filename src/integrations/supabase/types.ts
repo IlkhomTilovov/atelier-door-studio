@@ -98,6 +98,36 @@ export type Database = {
         }
         Relationships: []
       }
+      door_frames: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          name: string
+          scale: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          scale?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          scale?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
       door_model_colors: {
         Row: {
           color_id: string
@@ -166,39 +196,6 @@ export type Database = {
           molding_style?: string
           name?: string
           panel_count?: number
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      door_frames: {
-        Row: {
-          created_at: string
-          enabled: boolean
-          id: string
-          image_url: string | null
-          name: string
-          offset_y: number
-          scale: number
-          sort_order: number
-        }
-        Insert: {
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          image_url?: string | null
-          name: string
-          offset_y?: number
-          scale?: number
-          sort_order?: number
-        }
-        Update: {
-          created_at?: string
-          enabled?: boolean
-          id?: string
-          image_url?: string | null
-          name?: string
-          offset_y?: number
-          scale?: number
           sort_order?: number
         }
         Relationships: []
