@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useShowroom } from '@/context/ShowroomContext';
 import { collectionNames } from '@/data/showroom-data';
 import { Link } from 'react-router-dom';
@@ -11,7 +11,22 @@ import { toast } from 'sonner';
 import TelegramSettings from '@/components/admin/TelegramSettings';
 import OrdersAdmin from '@/components/admin/OrdersAdmin';
 
-type AdminTab = 'categories' | 'walls' | 'doors' | 'floors' | 'orders' | 'settings';
+type AdminTab = 'dashboard' | 'categories' | 'rooms' | 'doors' | 'frames' | 'materials' | 'orders' | 'settings';
+
+function describeError(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (e && typeof e === 'object') {
+    const obj = e as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+    const parts: string[] = [];
+    if (typeof obj.message === 'string') parts.push(obj.message);
+    if (typeof obj.details === 'string' && obj.details) parts.push(obj.details);
+    if (typeof obj.hint === 'string' && obj.hint) parts.push(`(${obj.hint})`);
+    if (typeof obj.code === 'string' && obj.code) parts.push(`[${obj.code}]`);
+    if (parts.length) return parts.join(' ');
+  }
+  if (typeof e === 'string') return e;
+  try { return JSON.stringify(e); } catch { return 'Unknown error'; }
+}
 
 const cardCls = "group relative bg-card/60 backdrop-blur-sm rounded-xl p-4 transition-all duration-300 hover:bg-card/80 hover:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 border border-border/40";
 const iconBtn = "p-2 rounded-lg transition-all duration-200 hover:scale-110";
@@ -74,6 +89,71 @@ function SectionHeader({ title, count, onAdd }: { title: string; count: number; 
   );
 }
 
+function SearchBar({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
+  return (
+    <div className="mb-6">
+      <input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full bg-background/80 border border-border/50 rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-200"
+      />
+    </div>
+  );
+}
+
+function SummaryCard({ title, value, description, onAction }: { title: string; value: string; description: string; onAction?: () => void }) {
+  return (
+    <div className="group border border-border/40 bg-card/70 backdrop-blur-sm rounded-3xl p-6 transition-all duration-300 hover:border-gold/40 hover:shadow-[0_18px_60px_rgba(255,215,135,0.12)]">
+      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">{title}</p>
+      <p className="font-display text-3xl text-foreground mb-3">{value}</p>
+      <p className="text-sm text-muted-foreground/70 leading-6">{description}</p>
+      {onAction && (
+        <button onClick={onAction} className="mt-5 inline-flex items-center gap-2 text-xs text-gold font-medium hover:text-gold-dark transition-colors duration-200">
+          Boshqarishga o'tish
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DashboardAdmin() {
+  const { allCategories, allWalls, allDoors, allFloors } = useShowroom();
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.from('orders').select('id', { count: 'exact' }).then(result => {
+      if (!mounted) return;
+      if (result.count !== null) setOrderCount(result.count);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <SummaryCard title="Kategoriyalar" value={`${allCategories.length}`} description="Katalogdagi xona va eshik kategoriyalari." />
+        <SummaryCard title="Xona dizaynlari" value={`${allWalls.length}`} description="Yaratilgan xona dizaynlarining umumiy soni." />
+        <SummaryCard title="Eshiklar" value={`${allDoors.length}`} description="Barcha eshik modellari va holati." />
+        <SummaryCard title="Pol materiallari" value={`${allFloors.length}`} description="Saqlangan pol teksturalari va parametrlar." />
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="border border-border/40 rounded-3xl bg-card/70 p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">Buyurtmalar</p>
+          <p className="text-3xl text-foreground font-display mb-3">{orderCount}</p>
+          <p className="text-sm text-muted-foreground/70 leading-6">Joriy buyurtmalar soni va ularning holatini kuzatib boring.</p>
+        </div>
+        <div className="border border-border/40 rounded-3xl bg-card/70 p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">Live preview</p>
+          <p className="text-3xl text-foreground font-display mb-3">Instant visualization</p>
+          <p className="text-sm text-muted-foreground/70 leading-6">Yangi elementlarni saqlashdan oldin 3 ta asosiy materialni sinab ko'ring: eshik, xona va pol.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Simple inline edit modal for categories
 function CategoryModal({ open, onClose, onSave, saving, initial }: {
   open: boolean; onClose: () => void; onSave: (name: string) => void; saving: boolean; initial?: string;
@@ -117,13 +197,15 @@ function CategoryModal({ open, onClose, onSave, saving, initial }: {
 // ═══════════════════════ Main ═══════════════════════
 
 export default function Admin() {
-  const [tab, setTab] = useState<AdminTab>('categories');
+  const [tab, setTab] = useState<AdminTab>('dashboard');
 
   const tabLabels: Record<AdminTab, string> = {
+    dashboard: 'Dashboard',
     categories: 'Kategoriyalar',
-    walls: 'Xona dizaynlari',
+    rooms: 'Xonalar',
     doors: 'Eshiklar',
-    floors: 'Pollar',
+    frames: 'Ramkalar',
+    materials: 'Materiallar',
     orders: '📦 Buyurtmalar',
     settings: '⚙️ Sozlamalar',
   };
@@ -147,11 +229,12 @@ export default function Admin() {
         ))}
       </div>
       <div className="p-8 max-w-5xl mx-auto admin-scroll">
+        {tab === 'dashboard' && <DashboardAdmin />}
         {tab === 'categories' && <CategoriesAdmin />}
-        {tab === 'walls' && <WallsAdmin />}
+        {tab === 'rooms' && <RoomsAdmin />}
         {tab === 'doors' && <DoorsAdmin />}
-        {tab === 'floors' && <FloorsAdmin />}
-        
+        {tab === 'frames' && <FramesAdmin />}
+        {tab === 'materials' && <MaterialsAdmin />}
         {tab === 'orders' && <OrdersAdmin />}
         {tab === 'settings' && <TelegramSettings />}
       </div>
@@ -163,10 +246,44 @@ export default function Admin() {
 
 function CategoriesAdmin() {
   const { allCategories: categories, allWalls: walls } = useShowroom();
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState<{ id: string; name: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [localCategories, setLocalCategories] = useState(categories);
+
+  useEffect(() => {
+    setLocalCategories(categories);
+  }, [categories]);
+
+  const filteredCategories = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return localCategories
+      .slice()
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .filter(cat => cat.name.toLowerCase().includes(query));
+  }, [localCategories, search]);
+
+  const handleDragStart = (index: number) => setDragIndex(index);
+
+  const handleDrop = async (index: number) => {
+    if (dragIndex === null || dragIndex === index) return;
+    const next = [...localCategories];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(index, 0, moved);
+    setLocalCategories(next.map((item, i) => ({ ...item, sort_order: i + 1 })));
+
+    try {
+      await Promise.all(next.map((item, idx) =>
+        supabase.from('room_categories').update({ sort_order: idx + 1 }).eq('id', item.id)
+      ));
+      toast.success('Kategoriyalar tartibi yangilandi');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Unknown error');
+    }
+  };
 
   const addCategory = async (name: string) => {
     setSaving(true);
@@ -175,7 +292,7 @@ function CategoriesAdmin() {
       if (error) throw error;
       toast.success('Kategoriya qo\'shildi');
       setShowModal(false);
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Unknown error'); }
     setSaving(false);
   };
 
@@ -187,7 +304,7 @@ function CategoriesAdmin() {
       if (error) throw error;
       toast.success('Kategoriya yangilandi');
       setEditTarget(null);
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Unknown error'); }
     setSaving(false);
   };
 
@@ -206,8 +323,8 @@ function CategoriesAdmin() {
       if (error) throw error;
       setDeleteTarget(null);
       toast.success('O\'chirildi');
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Unknown error');
     }
   };
 
@@ -216,9 +333,17 @@ function CategoriesAdmin() {
   return (
     <>
       <SectionHeader title="Xona kategoriyalari" count={categories.length} onAdd={() => setShowModal(true)} />
+      <SearchBar value={search} onChange={setSearch} placeholder="Kategoriya nomi bo'yicha qidirish..." />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map(cat => (
-          <div key={cat.id} className={cardCls}>
+        {filteredCategories.map((cat, index) => (
+          <div
+            key={cat.id}
+            className={cardCls}
+            draggable
+            onDragStart={() => handleDragStart(index)}
+            onDragOver={e => e.preventDefault()}
+            onDrop={() => handleDrop(index)}
+          >
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0">
                 <FolderOpen className="w-5 h-5 text-gold" />
@@ -248,10 +373,16 @@ function CategoriesAdmin() {
 
 function DoorsAdmin() {
   const { allDoors: doors, doorCategories } = useShowroom();
+  const [search, setSearch] = useState('');
   const [showDoorModal, setShowDoorModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [editTarget, setEditTarget] = useState<typeof doors[0] | null>(null);
+
+  const filteredDoors = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return doors.filter(door => door.name.toLowerCase().includes(query));
+  }, [doors, search]);
 
   const addDoor = async (data: AssetModalData) => {
     setSaving(true);
@@ -290,7 +421,7 @@ function DoorsAdmin() {
         toast.success('Eshik qo\'shildi');
       }
       setShowDoorModal(false);
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Unknown error'); }
     setSaving(false);
   };
 
@@ -335,8 +466,9 @@ function DoorsAdmin() {
   return (
     <>
       <SectionHeader title="Eshik modellari" count={doors.length} onAdd={() => { setEditTarget(null); setShowDoorModal(true); }} />
+      <SearchBar value={search} onChange={setSearch} placeholder="Eshik nomi bo'yicha qidirish..." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-        {doors.map(door => {
+        {filteredDoors.map(door => {
           const catNames = getDoorCatNames(door.id);
           return (
             <div key={door.id} className={cardCls}>
@@ -381,21 +513,35 @@ function DoorsAdmin() {
   );
 }
 
-// ═══════════════════════ Walls (Room Designs) ═══════════════════════
+// ═══════════════════════ Rooms (Room Designs) ═══════════════════════
 
-function WallsAdmin() {
-  const { allWalls: walls, allCategories: categories } = useShowroom();
+function RoomsAdmin() {
+  const { allWalls: walls, allCategories: categories, allDoors: doors, allFloors: floors } = useShowroom();
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [editTarget, setEditTarget] = useState<typeof walls[0] | null>(null);
+  const [previewWall, setPreviewWall] = useState<string | null>(walls[0]?.id || null);
+  const [previewDoor, setPreviewDoor] = useState<string | null>(doors[0]?.id || null);
+  const [previewFloor, setPreviewFloor] = useState<string | null>(floors[0]?.id || null);
 
-  const filteredWalls = filterCategory === 'all'
-    ? walls
-    : filterCategory === 'none'
-      ? walls.filter(w => !w.category_id)
-      : walls.filter(w => w.category_id === filterCategory);
+  useEffect(() => {
+    if (!previewWall && walls[0]) setPreviewWall(walls[0].id);
+    if (!previewDoor && doors[0]) setPreviewDoor(doors[0].id);
+    if (!previewFloor && floors[0]) setPreviewFloor(floors[0].id);
+  }, [walls, doors, floors, previewWall, previewDoor, previewFloor]);
+
+  const filteredWalls = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const source = filterCategory === 'all'
+      ? walls
+      : filterCategory === 'none'
+        ? walls.filter(w => !w.category_id)
+        : walls.filter(w => w.category_id === filterCategory);
+    return source.filter(w => w.name.toLowerCase().includes(query));
+  }, [walls, filterCategory, search]);
 
   const getCategoryName = (catId?: string | null) => {
     if (!catId) return 'Kategoriyasiz';
@@ -432,7 +578,7 @@ function WallsAdmin() {
         toast.success('Xona dizayni qo\'shildi');
       }
       setShowModal(false);
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Unknown error'); }
     setSaving(false);
   };
 
@@ -462,6 +608,52 @@ function WallsAdmin() {
   return (
     <>
       <SectionHeader title="Xona dizaynlari" count={walls.length} onAdd={() => { setEditTarget(null); setShowModal(true); }} />
+      <SearchBar value={search} onChange={setSearch} placeholder="Xona nomi bo'yicha qidirish..." />
+
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr] mb-6">
+        <div className="border border-border/40 rounded-3xl bg-card/70 p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">Live preview</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <select value={previewWall ?? ''} onChange={e => setPreviewWall(e.target.value)} className="bg-background/80 border border-border/50 rounded-2xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 transition-all duration-200">
+              {walls.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
+            <select value={previewDoor ?? ''} onChange={e => setPreviewDoor(e.target.value)} className="bg-background/80 border border-border/50 rounded-2xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 transition-all duration-200">
+              {doors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+            <select value={previewFloor ?? ''} onChange={e => setPreviewFloor(e.target.value)} className="bg-background/80 border border-border/50 rounded-2xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-gold/30 transition-all duration-200">
+              {floors.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-1 gap-3 mt-5">
+            <div className="rounded-3xl overflow-hidden border border-border/20 bg-background/70 p-4">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.18em] mb-2">Xona</p>
+              {walls.find(w => w.id === previewWall)?.image ? (
+                <img src={walls.find(w => w.id === previewWall)?.image || ''} alt="Wall preview" className="w-full h-32 object-cover rounded-2xl" />
+              ) : (
+                <div className="h-32 rounded-2xl bg-muted/20 flex items-center justify-center text-sm text-muted-foreground">Rasm mavjud emas</div>
+              )}
+            </div>
+            <div className="rounded-3xl overflow-hidden border border-border/20 bg-background/70 p-4">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.18em] mb-2">Eshik</p>
+              {doors.find(d => d.id === previewDoor)?.image ? (
+                <img src={doors.find(d => d.id === previewDoor)?.image || ''} alt="Door preview" className="w-full h-32 object-contain rounded-2xl bg-background/80" />
+              ) : (
+                <div className="h-32 rounded-2xl bg-muted/20 flex items-center justify-center text-sm text-muted-foreground">Rasm mavjud emas</div>
+              )}
+            </div>
+            <div className="rounded-3xl overflow-hidden border border-border/20 bg-background/70 p-4">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.18em] mb-2">Pol</p>
+              <div className="h-32 rounded-2xl bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.2),_transparent_40%),linear-gradient(180deg,_rgba(0,0,0,0.04),_rgba(0,0,0,0.1))] flex items-center justify-center text-sm text-muted-foreground" style={{ backgroundColor: floors.find(f => f.id === previewFloor)?.color || '#6b6b6b' }}>
+                {floors.find(f => f.id === previewFloor)?.name || 'Tanlanmagan'}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="border border-border/40 rounded-3xl bg-card/70 p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/60 mb-4">Qisqacha ko'rinish</p>
+          <p className="text-sm text-muted-foreground/70 leading-6">Tanlangan xona, eshik va pol kombinatsiyasini darhol ko'ring. Bu sizga admin panelda materiallarni tezroq moslashtirishga yordam beradi.</p>
+        </div>
+      </div>
 
       {/* Category filter */}
       <div className="flex flex-wrap gap-2 mb-6">
@@ -532,15 +724,21 @@ function WallsAdmin() {
   );
 }
 
-// ═══════════════════════ Floors ═══════════════════════
+// ═══════════════════════ Materials ═══════════════════════
 
-function FloorsAdmin() {
+function MaterialsAdmin() {
   const { allFloors: floors } = useShowroom();
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const patternLabels: Record<string, string> = { marble: 'Marmar', wood: "Yog'och", tile: 'Plitka' };
+
+  const filteredFloors = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return floors.filter(floor => floor.name.toLowerCase().includes(query));
+  }, [floors, search]);
 
   const addFloor = async (data: AssetModalData) => {
     setSaving(true);
@@ -556,7 +754,7 @@ function FloorsAdmin() {
       if (error) throw error;
       toast.success('Pol qo\'shildi');
       setShowModal(false);
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Unknown error'); }
     setSaving(false);
   };
 
@@ -567,8 +765,9 @@ function FloorsAdmin() {
   return (
     <>
       <SectionHeader title="Pol materiallari" count={floors.length} onAdd={() => setShowModal(true)} />
+      <SearchBar value={search} onChange={setSearch} placeholder="Material nomi bo'yicha qidirish..." />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {floors.map(floor => (
+        {filteredFloors.map(floor => (
           <div key={floor.id} className={cardCls}>
             {floor.image && (
               <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
@@ -593,6 +792,118 @@ function FloorsAdmin() {
       </div>
       <AssetModal open={showModal} onClose={() => setShowModal(false)} onSave={addFloor} type="floor" title="Yangi pol materiali" saving={saving} />
       <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={async () => { if (deleteTarget) { await supabase.from('floors').delete().eq('id', deleteTarget.id); setDeleteTarget(null); toast.success('O\'chirildi'); } }} name={deleteTarget?.name ?? ''} />
+    </>
+  );
+}
+
+// ═══════════════════════ Frames ═══════════════════════
+
+function FramesAdmin() {
+  const { allFrames: frames } = useShowroom();
+  const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editTarget, setEditTarget] = useState<typeof frames[0] | null>(null);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return frames.filter(f => f.name.toLowerCase().includes(q));
+  }, [frames, search]);
+
+  const saveFrame = async (data: AssetModalData) => {
+    setSaving(true);
+    try {
+      let imageUrl: string | null = editTarget?.image ?? null;
+      if (data.imageFile) {
+        const uploaded = await uploadAssetImage(data.imageFile, 'door-frames');
+        if (!uploaded) throw new Error('Rasmni yuklab bo\'lmadi (storage). Bucket sozlamalarini tekshiring.');
+        imageUrl = uploaded;
+      } else if (!data.imagePreview) {
+        imageUrl = null;
+      }
+
+      const scale = data.frameScale ?? 1.15;
+
+      if (editTarget) {
+        const { error } = await supabase.from('door_frames').update({
+          name: data.name, image_url: imageUrl, scale,
+        }).eq('id', editTarget.id);
+        if (error) throw error;
+        toast.success('Ramka yangilandi');
+        setEditTarget(null);
+      } else {
+        const { error } = await supabase.from('door_frames').insert({
+          name: data.name, image_url: imageUrl, scale, sort_order: frames.length + 1,
+        });
+        if (error) throw error;
+        toast.success('Ramka qo\'shildi');
+      }
+      setShowModal(false);
+    } catch (e: unknown) { toast.error(describeError(e)); }
+    setSaving(false);
+  };
+
+  const toggleFrame = async (id: string, enabled: boolean) => {
+    await supabase.from('door_frames').update({ enabled: !enabled }).eq('id', id);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    await supabase.from('door_frames').delete().eq('id', deleteTarget.id);
+    setDeleteTarget(null);
+    toast.success('O\'chirildi');
+  };
+
+  const openEdit = (frame: typeof frames[0]) => {
+    setEditTarget(frame);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditTarget(null);
+  };
+
+  const editInitial = editTarget ? {
+    id: editTarget.id,
+    name: editTarget.name,
+    imageUrl: editTarget.image,
+    frameScale: editTarget.scale,
+  } : null;
+
+  return (
+    <>
+      <SectionHeader title="Ramka modellari" count={frames.length} onAdd={() => { setEditTarget(null); setShowModal(true); }} />
+      <SearchBar value={search} onChange={setSearch} placeholder="Ramka nomi bo'yicha qidirish..." />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        {filtered.map(frame => (
+          <div key={frame.id} className={cardCls}>
+            {frame.image && (
+              <div className="mb-3 -mx-1 -mt-1 rounded-lg overflow-hidden">
+                <img src={frame.image} alt="" className="w-full h-32 object-contain bg-secondary/20" />
+              </div>
+            )}
+            <div className="flex items-center gap-4">
+              {!frame.image && (
+                <div className="w-12 h-16 rounded-lg flex-shrink-0 border border-border/40 bg-secondary/20" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm text-foreground font-medium truncate">{frame.name}</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">{Math.round(frame.scale * 100)}% o'lcham</p>
+              </div>
+              <StatusBadge active={frame.enabled} />
+            </div>
+            <div className="flex items-center justify-end gap-3 mt-3 pt-3 border-t border-border/20">
+              <ToggleSwitch checked={frame.enabled} onChange={() => toggleFrame(frame.id, frame.enabled)} />
+              <button onClick={() => openEdit(frame)} className={`${iconBtn} hover:bg-gold/10 text-muted-foreground/50 hover:text-gold border border-transparent hover:border-gold/30`}><Pencil className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setDeleteTarget({ id: frame.id, name: frame.name })} className={`${iconBtn} hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive`}><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <AssetModal open={showModal} onClose={closeModal} onSave={saveFrame} type="frame" title={editTarget ? 'Ramkani tahrirlash' : 'Yangi ramka'} saving={saving} initial={editInitial} />
+      <DeleteConfirm open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} name={deleteTarget?.name ?? ''} />
     </>
   );
 }

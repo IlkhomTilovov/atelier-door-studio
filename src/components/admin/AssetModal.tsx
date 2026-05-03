@@ -2,12 +2,16 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Upload, Trash2, ChevronDown, Check } from 'lucide-react';
 import { DoorCollection } from '@/types/showroom';
 import { useShowroom } from '@/context/ShowroomContext';
+import { toast } from 'sonner';
+
+const ACCEPTED_IMAGE_TYPES = /^image\/(png|jpeg|jpg|svg\+xml|webp)$/;
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
 
 const inputCls = "w-full bg-background/60 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 font-body text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold/40 transition-all duration-300";
 const labelCls = "block text-[11px] uppercase tracking-[0.18em] text-muted-foreground/70 font-body mb-2";
 const selectCls = inputCls + " appearance-none cursor-pointer";
 
-export type AssetType = 'door' | 'wall' | 'floor' | 'color';
+export type AssetType = 'door' | 'wall' | 'floor' | 'color' | 'frame';
 
 export interface AssetModalData {
   name: string;
@@ -23,6 +27,7 @@ export interface AssetModalData {
   textureOrientation?: 'horizontal' | 'vertical';
   categoryId?: string;
   categoryIds?: string[];
+  frameScale?: number;
 }
 
 export interface AssetModalInitial {
@@ -39,6 +44,7 @@ export interface AssetModalInitial {
   textureOrientation?: 'horizontal' | 'vertical';
   categoryId?: string;
   categoryIds?: string[];
+  frameScale?: number | null;
 }
 
 interface AssetModalProps {
@@ -72,6 +78,8 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
   const [catDropdownOpen, setCatDropdownOpen] = useState(false);
   const catDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [frameScale, setFrameScale] = useState<number>(1.15);
+
   useEffect(() => {
     if (!open) return;
     if (initial) {
@@ -88,6 +96,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setTextureOrientation(initial.textureOrientation || 'horizontal');
       setCategoryId(initial.categoryId || '');
       setCategoryIds(initial.categoryIds || []);
+      setFrameScale(initial.frameScale ?? 1.15);
     } else {
       setName(''); setColor(type === 'floor' ? '#6B6B6B' : '#C4B8A8');
       setImageFile(null); setImagePreview(null);
@@ -96,6 +105,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
       setTextureScale('medium'); setTextureOrientation('horizontal');
       setCategoryId(allCategories[0]?.id || '');
       setCategoryIds([]);
+      setFrameScale(1.15);
     }
   }, [open, type, allCategories, initial]);
 
@@ -109,21 +119,19 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
     return () => document.removeEventListener('mousedown', handler);
   }, [catDropdownOpen]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { if (catDropdownOpen) { setCatDropdownOpen(false); return; } onClose(); }
-      if (e.key === 'Enter' && name.trim() && !saving && !catDropdownOpen) handleSave();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open, name, saving, catDropdownOpen]);
-
   const handleFile = useCallback((file: File) => {
-    if (!file.type.match(/image\/(png|jpeg|jpg|svg\+xml)/)) return;
+    if (!ACCEPTED_IMAGE_TYPES.test(file.type)) {
+      toast.error(`Rasm formati qo'llab-quvvatlanmaydi: ${file.type || 'noma\'lum'}. PNG, JPG, SVG yoki WEBP bo'lishi kerak.`);
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error(`Fayl juda katta: ${(file.size / 1024 / 1024).toFixed(1)} MB. Maksimal hajm: 8 MB.`);
+      return;
+    }
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.onerror = () => toast.error('Rasmni o\'qib bo\'lmadi.');
     reader.readAsDataURL(file);
   }, []);
 
@@ -133,14 +141,30 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
     if (file) handleFile(file);
   }, [handleFile]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!name.trim() || saving) return;
     const data: AssetModalData = { name: name.trim(), color, imageFile, imagePreview };
-    if (type === 'door') { data.collection = collection; data.panelCount = panelCount; data.categoryIds = categoryIds; }
+    if (type === 'door') {
+      data.collection = collection;
+      data.panelCount = panelCount;
+      data.categoryIds = categoryIds;
+    }
     if (type === 'wall') { data.categoryId = categoryId || undefined; }
     if (type === 'floor') { data.pattern = pattern; data.textureScale = textureScale; data.textureOrientation = 'horizontal'; }
+    if (type === 'frame') { data.frameScale = frameScale; }
     onSave(data);
-  };
+  }, [name, saving, color, imageFile, imagePreview, type, collection, panelCount, categoryIds, categoryId, pattern, textureScale, onSave, frameScale]);
+
+  const handler = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') { if (catDropdownOpen) { setCatDropdownOpen(false); return; } onClose(); }
+    if (e.key === 'Enter' && name.trim() && !saving && !catDropdownOpen) handleSave();
+  }, [catDropdownOpen, onClose, name, saving, handleSave]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open, handler]);
 
   const isValid = name.trim().length > 0;
   const isEditMode = !!initial;
@@ -149,69 +173,89 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
   const isWallModal = type === 'wall';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-background/85 backdrop-blur-xl" onClick={onClose} />
-      <div className="relative w-full max-w-[720px] bg-card/95 backdrop-blur-2xl border border-border/30 rounded-2xl shadow-[0_32px_100px_rgba(0,0,0,0.6)] animate-scale-in overflow-hidden">
+      <div className="relative w-full max-w-[560px] md:max-w-[680px] max-h-[92vh] bg-card/95 backdrop-blur-2xl border border-border/30 rounded-2xl shadow-[0_32px_100px_rgba(0,0,0,0.6)] animate-scale-in overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border/15">
+        <div className="flex items-center justify-between px-5 sm:px-7 pt-5 sm:pt-6 pb-3 sm:pb-4 border-b border-border/15 flex-shrink-0">
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 font-body mb-1">
-              {type === 'door' ? 'Eshik' : type === 'wall' ? 'Xona dizayni' : type === 'floor' ? 'Pol' : 'Rang'}
+              {type === 'door' ? 'Eshik' : type === 'wall' ? 'Xona dizayni' : type === 'floor' ? 'Pol' : type === 'frame' ? 'Ramka' : 'Rang'}
             </p>
-            <h3 className="font-display text-xl text-foreground">{title}</h3>
+            <h3 className="font-display text-lg sm:text-xl text-foreground">{title}</h3>
           </div>
           <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-secondary/50 transition-all duration-200 group">
             <X className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </button>
         </div>
 
-        <div className="flex min-h-[360px]">
+        <div className="flex flex-col md:flex-row md:min-h-[360px] overflow-y-auto">
           {/* LEFT — Image */}
           {type !== 'color' && (
-            <div className="w-[280px] p-6 border-r border-border/10 flex flex-col">
+            <div className="w-full md:w-[260px] p-5 md:p-6 border-b md:border-b-0 md:border-r border-border/10 flex flex-col flex-shrink-0">
               <label className={labelCls}>Rasm yuklash</label>
               {!imagePreview ? (
-                <div
+                <label
                   onDragOver={e => { e.preventDefault(); setDragOver(true); }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={onDrop}
-                  onClick={() => fileRef.current?.click()}
-                  className={`flex-1 rounded-xl border-2 border-dashed cursor-pointer flex flex-col items-center justify-center gap-3 transition-all duration-300 ${
+                  className={`md:flex-1 h-32 md:h-auto rounded-xl border-2 border-dashed cursor-pointer flex flex-col items-center justify-center gap-2 md:gap-3 transition-all duration-300 ${
                     dragOver ? 'border-gold/60 bg-gold/5 shadow-[0_0_24px_rgba(180,160,100,0.1)]' : 'border-border/25 hover:border-gold/40 hover:bg-secondary/15 hover:shadow-[0_0_20px_rgba(180,160,100,0.05)]'
                   }`}
                 >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${dragOver ? 'bg-gold/15 text-gold' : 'bg-secondary/30 text-muted-foreground/40'}`}>
-                    <Upload className="w-6 h-6" />
+                  <div className={`w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${dragOver ? 'bg-gold/15 text-gold' : 'bg-secondary/30 text-muted-foreground/40'}`}>
+                    <Upload className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div className="text-center px-4">
-                    <p className="font-body text-xs text-foreground/70 mb-1">Rasmni tashlang yoki bosing</p>
-                    <p className="text-[10px] text-muted-foreground/35">PNG, JPG, SVG</p>
+                    <p className="font-body text-xs text-foreground/70 mb-0.5 md:mb-1">Rasmni tashlang yoki bosing</p>
+                    <p className="text-[10px] text-muted-foreground/35">PNG, JPG, SVG, WEBP</p>
                   </div>
-                </div>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    className="sr-only"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFile(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
               ) : (
-                <div className="flex-1 rounded-xl overflow-hidden relative group/img bg-secondary/15">
+                <div className="md:flex-1 h-40 md:h-auto rounded-xl overflow-hidden relative group/img bg-secondary/15">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-contain p-3" />
                   <div className="absolute bottom-3 left-3 right-3 flex gap-2 opacity-0 group-hover/img:opacity-100 transition-all duration-200">
-                    <button onClick={() => fileRef.current?.click()} className="flex-1 px-3 py-2 rounded-lg bg-background/80 backdrop-blur-sm text-xs font-body text-foreground hover:bg-background transition-all">Almashtirish</button>
-                    <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="px-3 py-2 rounded-lg bg-destructive/20 backdrop-blur-sm text-xs text-destructive hover:bg-destructive/30 transition-all">
+                    <button type="button" onClick={() => fileRef.current?.click()} className="flex-1 px-3 py-2 rounded-lg bg-background/80 backdrop-blur-sm text-xs font-body text-foreground hover:bg-background transition-all">Almashtirish</button>
+                    <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="px-3 py-2 rounded-lg bg-destructive/20 backdrop-blur-sm text-xs text-destructive hover:bg-destructive/30 transition-all">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    className="sr-only"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFile(f);
+                      e.target.value = '';
+                    }}
+                  />
                 </div>
               )}
-              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
             </div>
           )}
 
           {/* RIGHT — Form */}
-          <div className="flex-1 p-6 flex flex-col">
-            <div className="space-y-5 flex-1">
+          <div className="flex-1 p-5 md:p-6 flex flex-col">
+            <div className="space-y-4 md:space-y-5 flex-1">
               <div>
                 <label className={labelCls}>Nomi <span className="text-destructive/60">*</span></label>
                 <input value={name} onChange={e => setName(e.target.value)} placeholder="Masalan: Firenze" className={inputCls} maxLength={50} autoFocus />
               </div>
 
-              {type !== 'wall' && type !== 'door' && (
+              {(type === 'floor' || type === 'color') && (
                 <div>
                   <label className={labelCls}>Rang</label>
                   <div className="flex items-center gap-3">
@@ -291,6 +335,34 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
                 </>
               )}
 
+              {type === 'frame' && (
+                <div>
+                  <label className={labelCls}>
+                    Ramka o'lchami (eshikga nisbatan)
+                    <span className="ml-2 text-gold/70 font-mono normal-case tracking-normal">{Math.round(frameScale * 100)}%</span>
+                  </label>
+                  <input
+                    type="range"
+                    min={1.0}
+                    max={1.5}
+                    step={0.01}
+                    value={frameScale}
+                    onChange={e => setFrameScale(Number(e.target.value))}
+                    className="w-full accent-gold cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground/50 mt-1 font-mono">
+                    <span>100%</span>
+                    <span>110%</span>
+                    <span>120%</span>
+                    <span>130%</span>
+                    <span>150%</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/50 mt-3 leading-relaxed">
+                    Ramka shaffof fonli (transparent) PNG bo'lishi tavsiya etiladi — markazda eshik o'tadigan bo'sh joy bilan.
+                  </p>
+                </div>
+              )}
+
               {isWallModal && (
                 <>
                   <div>
@@ -309,7 +381,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
                 <>
                   <div>
                     <label className={labelCls}>Material turi</label>
-                    <select value={pattern} onChange={e => setPattern(e.target.value as any)} className={selectCls}>
+                    <select value={pattern} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPattern(e.target.value as 'marble' | 'wood' | 'tile')} className={selectCls}>
                       <option value="marble">Marmar</option>
                       <option value="wood">Yog'och</option>
                       <option value="tile">Plitka</option>
@@ -317,7 +389,7 @@ export default function AssetModal({ open, onClose, onSave, type, title, saving,
                   </div>
                   <div>
                     <label className={labelCls}>Tekstura o'lchami</label>
-                    <select value={textureScale} onChange={e => setTextureScale(e.target.value as any)} className={selectCls}>
+                    <select value={textureScale} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTextureScale(e.target.value as 'small' | 'medium' | 'large')} className={selectCls}>
                       <option value="small">Kichik</option>
                       <option value="medium">O'rta</option>
                       <option value="large">Katta</option>

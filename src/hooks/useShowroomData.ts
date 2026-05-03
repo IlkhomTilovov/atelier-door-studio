@@ -1,12 +1,65 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor, RoomCategory, DoorCategory } from '@/types/showroom';
+import { DoorModel, DoorColor, WallStyle, FloorMaterial, DoorCollection, RoomDoor, RoomFloor, DoorModelColor, RoomCategory, DoorCategory, DoorFrame } from '@/types/showroom';
 
-function mapCategory(row: any): RoomCategory {
+interface CategoryRow {
+  id: string;
+  name: string;
+  enabled: boolean;
+  sort_order: number;
+}
+
+interface DoorRow {
+  id: string;
+  name: string;
+  collection: string;
+  molding_style: string;
+  panel_count: number;
+  enabled: boolean;
+  image_url?: string | null;
+}
+
+interface DoorFrameRow {
+  id: string;
+  name: string;
+  image_url?: string | null;
+  scale?: number | string | null;
+  enabled: boolean;
+}
+
+interface ColorRow {
+  id: string;
+  name: string;
+  hex: string;
+  enabled: boolean;
+}
+
+interface WallRow {
+  id: string;
+  name: string;
+  color: string;
+  molding_type: string;
+  enabled: boolean;
+  image_url?: string | null;
+  category_id?: string | null;
+}
+
+interface FloorRow {
+  id: string;
+  name: string;
+  color: string;
+  pattern: string;
+  enabled: boolean;
+  image_url?: string | null;
+  texture_scale?: string | null;
+  texture_orientation?: string | null;
+}
+
+function mapCategory(row: CategoryRow): RoomCategory {
   return { id: row.id, name: row.name, enabled: row.enabled, sort_order: row.sort_order };
 }
 
-function mapDoor(row: any): DoorModel {
+function mapDoor(row: DoorRow): DoorModel {
   return {
     id: row.id, name: row.name,
     collection: row.collection as DoorCollection,
@@ -16,11 +69,21 @@ function mapDoor(row: any): DoorModel {
   };
 }
 
-function mapColor(row: any): DoorColor {
+function mapFrame(row: DoorFrameRow): DoorFrame {
+  return {
+    id: row.id,
+    name: row.name,
+    image: row.image_url ?? null,
+    scale: row.scale != null ? Number(row.scale) : 1.15,
+    enabled: row.enabled,
+  };
+}
+
+function mapColor(row: ColorRow): DoorColor {
   return { id: row.id, name: row.name, hex: row.hex, enabled: row.enabled };
 }
 
-function mapWall(row: any): WallStyle {
+function mapWall(row: WallRow): WallStyle {
   return {
     id: row.id, name: row.name, color: row.color,
     moldingType: row.molding_type as WallStyle['moldingType'],
@@ -29,7 +92,7 @@ function mapWall(row: any): WallStyle {
   };
 }
 
-function mapFloor(row: any): FloorMaterial {
+function mapFloor(row: FloorRow): FloorMaterial {
   return {
     id: row.id, name: row.name, color: row.color,
     pattern: row.pattern as FloorMaterial['pattern'],
@@ -49,10 +112,11 @@ export function useShowroomData() {
   const [roomFloors, setRoomFloors] = useState<RoomFloor[]>([]);
   const [doorModelColors, setDoorModelColors] = useState<DoorModelColor[]>([]);
   const [doorCategories, setDoorCategories] = useState<DoorCategory[]>([]);
+  const [frames, setFrames] = useState<DoorFrame[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = async () => {
-    const [cat, d, c, w, f, rd, rf, dmc, dc] = await Promise.all([
+    const [cat, d, c, w, f, rd, rf, dmc, dc, fr] = await Promise.all([
       supabase.from('room_categories').select('*').order('sort_order'),
       supabase.from('doors').select('*').order('sort_order'),
       supabase.from('door_colors').select('*').order('sort_order'),
@@ -62,6 +126,7 @@ export function useShowroomData() {
       supabase.from('room_floors').select('wall_id, floor_id'),
       supabase.from('door_model_colors').select('door_id, color_id'),
       supabase.from('door_categories').select('door_id, category_id'),
+      supabase.from('door_frames').select('*').order('sort_order'),
     ]);
     if (cat.data) setCategories(cat.data.map(mapCategory));
     if (d.data) setDoors(d.data.map(mapDoor));
@@ -72,6 +137,7 @@ export function useShowroomData() {
     if (rf.data) setRoomFloors(rf.data);
     if (dmc.data) setDoorModelColors(dmc.data);
     if (dc.data) setDoorCategories(dc.data);
+    if (fr.data) setFrames(fr.data.map(mapFrame));
     setLoading(false);
   };
 
@@ -125,13 +191,18 @@ export function useShowroomData() {
           if (data) setDoorCategories(data);
         });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'door_frames' }, () => {
+        supabase.from('door_frames').select('*').order('sort_order').then(({ data }) => {
+          if (data) setFrames(data.map(mapFrame));
+        });
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, []);
 
   return {
-    categories, doors, colors, walls, floors,
+    categories, doors, colors, walls, floors, frames,
     roomDoors, roomFloors, doorModelColors, doorCategories,
     setDoors, setColors, setWalls, setFloors,
     loading, refetch: fetchAll,

@@ -5,12 +5,13 @@ import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
 export default function CenterScene() {
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
-  const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor } = useShowroom();
+  const { getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor, getSelectedFrame } = useShowroom();
 
   const door = getSelectedDoor();
   const doorColor = getSelectedDoorColor();
   const wall = getSelectedWall();
   const floor = getSelectedFloor();
+  const frame = getSelectedFrame();
 
   const wallColor = wall?.color ?? '#A8A09A';
   const floorColor = floor?.color ?? '#2A2A2E';
@@ -73,19 +74,38 @@ export default function CenterScene() {
       <div
         className={`absolute left-1/2 -translate-x-1/2 z-20 transition-showroom`}
         style={{
-          bottom: '18%',
-          height: isMobile ? '27%' : isTablet ? '35%' : '62%',
-          maxWidth: isTablet ? '420px' : undefined,
+          bottom: isMobile ? '20%' : '18%',
+          height: isMobile ? '25%' : isTablet ? '58%' : '52%',
+          maxWidth: isTablet ? '840px' : undefined,
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
         }}
       >
+        {frame?.image && (
+          <img
+            src={frame.image}
+            alt=""
+            aria-hidden="true"
+            className="absolute h-full w-auto object-contain pointer-events-none select-none transition-showroom"
+            style={{
+              left: '50%',
+              bottom: 0,
+              transform: `translateX(-50%) scale(${clampFrameScale(frame.scale)})`,
+              transformOrigin: 'bottom center',
+              filter: 'drop-shadow(0 12px 28px rgba(0,0,0,0.35))',
+              zIndex: 1,
+              imageRendering: 'auto',
+            }}
+            draggable={false}
+          />
+        )}
         {door?.image ? (
           <img
             src={door.image}
             alt=""
-            className="h-full w-auto object-contain transition-showroom animate-scale-in"
+            className="relative h-full w-auto object-contain transition-showroom animate-scale-in"
+            style={{ zIndex: 2 }}
           />
         ) : (
           <DoorComponent
@@ -353,4 +373,9 @@ function adjustBrightness(hex: string, amount: number): string {
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0xFF) + amount));
   const b = Math.min(255, Math.max(0, (num & 0xFF) + amount));
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
+function clampFrameScale(value?: number | null): number {
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : 1.15;
+  return Math.min(1.5, Math.max(1.0, n));
 }

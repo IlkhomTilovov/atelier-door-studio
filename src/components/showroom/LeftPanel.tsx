@@ -70,17 +70,17 @@ function RoomDesignSwiper({
       {/* Card */}
       <div
         key={wall.id}
-        className="mx-auto flex flex-col items-center gap-2 rounded-2xl overflow-hidden transition-all duration-400 animate-fade-in"
+        className="mx-auto flex flex-col items-center gap-1 rounded-2xl overflow-hidden transition-all duration-400 animate-fade-in"
         style={{
-          width: '160px',
+          width: '110px',
           background: 'linear-gradient(135deg, hsl(40 50% 55% / 0.1), hsl(40 45% 50% / 0.03))',
           border: '1.5px solid hsl(40 60% 55% / 0.4)',
-          boxShadow: '0 0 20px hsl(40 60% 55% / 0.1), 0 6px 20px rgba(0,0,0,0.25)',
+          boxShadow: '0 0 12px hsl(40 60% 55% / 0.1), 0 3px 12px rgba(0,0,0,0.2)',
         }}
       >
         <div
           className="w-full overflow-hidden"
-          style={{ height: '120px' }}
+          style={{ height: '70px' }}
         >
           {wall.image ? (
             <img src={wall.image} alt="" className="w-full h-full object-cover" />
@@ -110,6 +110,86 @@ function RoomDesignSwiper({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Frame Picker Grid ── */
+function FramePickerGrid({
+  frames,
+  selectedId,
+  onSelect,
+}: {
+  frames: { id: string; name: string; image?: string | null }[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  if (frames.length === 0) {
+    return (
+      <p className="text-xs text-center py-3" style={{ color: 'hsl(40 10% 40%)' }}>
+        Ramka topilmadi
+      </p>
+    );
+  }
+
+  const noneActive = !selectedId;
+
+  return (
+    <div className="grid grid-cols-3 gap-2.5">
+      <button
+        onClick={() => onSelect('')}
+        className="flex flex-col items-center gap-1.5 transition-all duration-300"
+      >
+        <div
+          className="w-full aspect-square rounded-xl flex items-center justify-center transition-all duration-300"
+          style={{
+            background: 'hsl(220 15% 14% / 0.5)',
+            border: noneActive ? '1.5px solid hsl(40 60% 55%)' : '1px dashed hsl(40 30% 40% / 0.4)',
+            boxShadow: noneActive ? '0 0 16px hsl(40 60% 55% / 0.15)' : 'none',
+            transform: noneActive ? 'scale(1.06)' : undefined,
+          }}
+        >
+          <span className="text-[18px]" style={{ color: noneActive ? '#D4AF37' : 'hsl(40 20% 40%)' }}>∅</span>
+        </div>
+        <span
+          className="text-[9px] tracking-wide font-body text-center leading-tight"
+          style={{ color: noneActive ? 'hsl(40 50% 72%)' : 'hsl(40 10% 40%)' }}
+        >
+          Ramkasiz
+        </span>
+      </button>
+      {frames.map(frame => {
+        const active = selectedId === frame.id;
+        return (
+          <button
+            key={frame.id}
+            onClick={() => onSelect(frame.id)}
+            className="flex flex-col items-center gap-1.5 transition-all duration-300"
+          >
+            <div
+              className="w-full aspect-square rounded-xl overflow-hidden flex items-center justify-center bg-secondary/15 transition-all duration-300"
+              style={{
+                boxShadow: active
+                  ? '0 0 0 2px hsl(40 60% 55%), 0 0 16px hsl(40 60% 55% / 0.2)'
+                  : '0 2px 8px rgba(0,0,0,0.3)',
+                transform: active ? 'scale(1.06)' : undefined,
+              }}
+            >
+              {frame.image ? (
+                <img src={frame.image} alt="" className="w-full h-full object-contain p-1.5" />
+              ) : (
+                <span className="text-[14px]" style={{ color: 'hsl(40 20% 45%)' }}>▢</span>
+              )}
+            </div>
+            <span
+              className="text-[9px] tracking-wide font-body text-center leading-tight truncate w-full"
+              style={{ color: active ? 'hsl(40 50% 72%)' : 'hsl(40 10% 40%)' }}
+            >
+              {frame.name}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -166,9 +246,9 @@ function DoorCarousel({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex flex-col min-h-0" style={{ minHeight: 0, maxHeight: '200px' }}>
       {/* Showcase stage with premium background */}
-      <div className="relative flex-1 min-h-0 overflow-hidden">
+      <div className="relative min-h-0 overflow-hidden" style={{ height: '140px' }}>
         <div
           ref={scrollRef}
           className="relative flex gap-4 overflow-x-auto snap-x snap-mandatory select-none touch-pan-x h-full"
@@ -178,7 +258,7 @@ function DoorCarousel({
           onPointerUp={onPointerUp}
         >
           <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-          <div className="flex-shrink-0" style={{ width: 'calc(50% - 80px)' }} />
+          <div className="flex-shrink-0" style={{ width: 'calc(50% - 60px)' }} />
           {doors.map(door => {
             const active = selectedId === door.id;
             return (
@@ -187,13 +267,13 @@ function DoorCarousel({
                 onClick={() => { onSelect(door.id); scrollToItem(door.id); }}
                 className="flex-shrink-0 snap-center flex flex-col items-center outline-none h-full"
                 style={{
-                  width: '160px',
+                  width: '100px',
                   background: 'transparent',
                   border: 'none',
                   boxShadow: 'none',
                   transition: 'all 0.3s ease',
-                  transform: active ? 'scale(1.04)' : 'scale(0.85)',
-                  opacity: active ? 1 : 0.4,
+                  transform: active ? 'scale(0.96)' : 'scale(0.88)',
+                  opacity: active ? 1 : 0.7,
                 }}
               >
                 <div
@@ -271,9 +351,10 @@ function DoorCarousel({
 }
 
 export default function LeftPanel() {
-  const { state, allCategories, filteredWalls, filteredDoors, selectCategory, selectDoor, selectWall } = useShowroom();
+  const { state, allCategories, filteredWalls, filteredDoors, filteredFrames, selectCategory, selectDoor, selectWall, selectFrame } = useShowroom();
   const enabledCategories = allCategories.filter(c => c.enabled);
   const [collapsed, setCollapsed] = useState(false);
+  const [roomOpen, setRoomOpen] = useState(true);
 
   const [catOpen, setCatOpen] = useState(false);
   const catRef = useRef<HTMLDivElement>(null);
@@ -307,12 +388,13 @@ export default function LeftPanel() {
   };
 
   return (
-    <div className="relative flex items-stretch w-full overflow-hidden">
+    <div className="relative flex items-stretch w-full h-full overflow-hidden" style={{ height: '100vh' }}>
       <div
-        className={`glass-panel glass-scrollbar h-full flex flex-col py-6 rounded-2xl overflow-hidden transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-5 opacity-100'}`}
+        className={`glass-panel glass-scrollbar h-full flex flex-col py-4 rounded-2xl overflow-hidden transition-all duration-500 ${collapsed ? 'w-0 px-0 opacity-0 pointer-events-none' : 'w-full px-4 opacity-100'}`}
       >
-        {/* Logo */}
-        <div className="mb-6 text-center">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+          {/* Logo */}
+          <div className="mb-6 text-center">
           <h1 className="font-display tracking-[0.25em] tablet-title" style={{ color: 'hsl(40 55% 68%)', fontSize: 'clamp(1rem, 2vw, 1.5rem)' }}>
             SHOWROOM
           </h1>
@@ -370,18 +452,30 @@ export default function LeftPanel() {
           <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
         </div>
 
-        {/* Room Design Swiper */}
-        <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-3" style={{ color: 'hsl(40 30% 50%)' }}>
-          Xona dizayni
-        </p>
+        {/* Room Design Dropdown */}
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10px] uppercase tracking-[0.25em] font-body" style={{ color: 'hsl(40 30% 50%)' }}>
+            Xona dizayni
+          </p>
+          <button
+            type="button"
+            onClick={() => setRoomOpen(open => !open)}
+            className="flex items-center justify-center rounded-full p-1 transition-transform duration-200"
+            style={{ color: 'hsl(40 40% 60%)' }}
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${roomOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
 
-        {!state.selectedCategory ? (
-          <p className="text-xs text-center py-3 mb-4" style={{ color: 'hsl(40 10% 40%)' }}>Avval kategoriya tanlang</p>
-        ) : (
-          <div className="mb-5">
-            <RoomDesignSwiper walls={filteredWalls} selectedId={state.selectedWall} onSelect={selectWall} />
-          </div>
-        )}
+        <div className={`overflow-hidden transition-all duration-300 ${roomOpen ? 'max-h-[260px] opacity-100' : 'max-h-0 opacity-0'}`}>
+          {!state.selectedCategory ? (
+            <p className="text-xs text-center py-3 mb-4" style={{ color: 'hsl(40 10% 40%)' }}>Avval kategoriya tanlang</p>
+          ) : (
+            <div className="mb-5">
+              <RoomDesignSwiper walls={filteredWalls} selectedId={state.selectedWall} onSelect={selectWall} />
+            </div>
+          )}
+        </div>
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-2">
@@ -395,7 +489,20 @@ export default function LeftPanel() {
           Eshik modellari
         </p>
         <DoorCarousel doors={filteredDoors} selectedId={state.selectedDoor} onSelect={selectDoor} />
-      </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-4">
+          <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
+          <div className="w-1 h-1 rounded-full" style={{ background: 'hsl(40 60% 55% / 0.3)' }} />
+          <div className="flex-1 h-px" style={{ background: 'hsl(40 60% 55% / 0.12)' }} />
+        </div>
+
+        {/* Frame (Molding) Picker */}
+        <p className="text-[10px] uppercase tracking-[0.25em] font-body mb-3" style={{ color: 'hsl(40 30% 50%)' }}>
+          Ramka
+        </p>
+        <FramePickerGrid frames={filteredFrames} selectedId={state.selectedFrame} onSelect={selectFrame} />
+        </div>
 
       {/* Toggle button */}
       <button
@@ -414,5 +521,6 @@ export default function LeftPanel() {
         {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
       </button>
     </div>
+  </div>
   );
 }

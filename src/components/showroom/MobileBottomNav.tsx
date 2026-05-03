@@ -213,6 +213,70 @@ function DoorPicker() {
   );
 }
 
+/* ── Frame Picker (mobile) ── */
+function FramePicker() {
+  const { state, filteredFrames, selectFrame } = useShowroom();
+  const noneActive = !state.selectedFrame;
+
+  return (
+    <div>
+      <p className="text-[9px] uppercase tracking-[0.2em] font-body mb-3" style={{ color: 'hsl(40 30% 48%)' }}>
+        Ramka
+      </p>
+      <div className="grid grid-cols-4 gap-3">
+        <button
+          onClick={() => selectFrame('')}
+          className="flex flex-col items-center gap-1.5 transition-all duration-300"
+        >
+          <div
+            className="w-full aspect-square rounded-xl flex items-center justify-center"
+            style={{
+              background: 'hsl(220 15% 14% / 0.5)',
+              border: noneActive ? '1.5px solid #D4AF37' : '1px dashed hsl(40 30% 40% / 0.4)',
+              boxShadow: noneActive ? '0 0 12px hsl(40 60% 55% / 0.2)' : 'none',
+              transform: noneActive ? 'scale(1.05)' : undefined,
+            }}
+          >
+            <span className="text-[18px]" style={{ color: noneActive ? '#D4AF37' : 'hsl(40 20% 40%)' }}>∅</span>
+          </div>
+          <span className="text-[9px] font-body tracking-wide text-center" style={{ color: noneActive ? '#D4AF37' : 'hsl(40 10% 42%)' }}>
+            Ramkasiz
+          </span>
+        </button>
+        {filteredFrames.map(frame => {
+          const active = state.selectedFrame === frame.id;
+          return (
+            <button
+              key={frame.id}
+              onClick={() => selectFrame(frame.id)}
+              className="flex flex-col items-center gap-1.5 transition-all duration-300"
+            >
+              <div
+                className="w-full aspect-square rounded-xl overflow-hidden flex items-center justify-center bg-secondary/15"
+                style={{
+                  boxShadow: active
+                    ? '0 0 0 2px #D4AF37, 0 0 12px hsl(40 60% 55% / 0.2)'
+                    : '0 2px 8px rgba(0,0,0,0.3)',
+                  transform: active ? 'scale(1.05)' : undefined,
+                }}
+              >
+                {frame.image ? (
+                  <img src={frame.image} alt="" className="w-full h-full object-contain p-1.5" />
+                ) : (
+                  <span className="text-[14px]" style={{ color: 'hsl(40 20% 45%)' }}>▢</span>
+                )}
+              </div>
+              <span className="text-[9px] font-body tracking-wide text-center truncate w-full" style={{ color: active ? '#D4AF37' : 'hsl(40 10% 42%)' }}>
+                {frame.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ── Color Picker ── */
 function ColorPicker() {
   const { state, filteredColors, selectDoorColor } = useShowroom();
@@ -395,7 +459,10 @@ export default function MobileBottomNav() {
         <RoomDesignPicker />
       </BottomSheet>
       <BottomSheet open={activeSheet === 'eshik'} onClose={() => setActiveSheet(null)} title={sheetTitle.eshik}>
-        <DoorPicker />
+        <div className="space-y-6">
+          <DoorPicker />
+          <FramePicker />
+        </div>
       </BottomSheet>
       <BottomSheet open={activeSheet === 'pol'} onClose={() => setActiveSheet(null)} title={sheetTitle.pol}>
         <FloorPicker />

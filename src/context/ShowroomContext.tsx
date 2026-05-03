@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
-import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial, RoomDoor, RoomFloor, DoorModelColor, RoomCategory, DoorCategory } from '@/types/showroom';
+import { ShowroomState, DoorCollection, DoorModel, DoorColor, WallStyle, FloorMaterial, RoomDoor, RoomFloor, DoorModelColor, RoomCategory, DoorCategory, DoorFrame } from '@/types/showroom';
 import { useShowroomData } from '@/hooks/useShowroomData';
 
 interface ShowroomContextType {
@@ -10,6 +10,7 @@ interface ShowroomContextType {
   allWalls: WallStyle[];
   allFloors: FloorMaterial[];
   allCategories: RoomCategory[];
+  allFrames: DoorFrame[];
   roomDoors: RoomDoor[];
   roomFloors: RoomFloor[];
   doorModelColors: DoorModelColor[];
@@ -19,6 +20,7 @@ interface ShowroomContextType {
   filteredDoors: DoorModel[];
   filteredColors: DoorColor[];
   filteredFloors: FloorMaterial[];
+  filteredFrames: DoorFrame[];
   walls: WallStyle[];
   loading: boolean;
   refetch: () => Promise<void>;
@@ -27,33 +29,38 @@ interface ShowroomContextType {
   selectDoorColor: (id: string) => void;
   selectWall: (id: string) => void;
   selectFloor: (id: string) => void;
+  selectFrame: (id: string) => void;
   setCollection: (c: DoorCollection) => void;
   getSelectedDoor: () => DoorModel | undefined;
   getSelectedDoorColor: () => DoorColor | undefined;
   getSelectedWall: () => WallStyle | undefined;
   getSelectedFloor: () => FloorMaterial | undefined;
   getSelectedCategory: () => RoomCategory | undefined;
+  getSelectedFrame: () => DoorFrame | undefined;
 }
 
 const ShowroomContext = createContext<ShowroomContextType | null>(null);
 
 export function ShowroomProvider({ children }: { children: ReactNode }) {
-  const { categories, doors, colors, walls, floors, roomDoors, roomFloors, doorModelColors, doorCategories, loading, refetch } = useShowroomData();
+  const { categories, doors, colors, walls, floors, frames, roomDoors, roomFloors, doorModelColors, doorCategories, loading, refetch } = useShowroomData();
 
   const [state, setState] = useState<ShowroomState>(() => {
     try {
       const saved = localStorage.getItem('showroom-selection');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...parsed, selectedCategory: parsed.selectedCategory || '' };
+        return { ...parsed, selectedCategory: parsed.selectedCategory || '', selectedFrame: parsed.selectedFrame || '' };
       }
-    } catch {}
+    } catch {
+      // ignore parse errors
+    }
     return {
       selectedDoor: '',
       selectedDoorColor: '',
       selectedWall: '',
       selectedFloor: '',
       selectedCategory: '',
+      selectedFrame: '',
       activeCollection: 'classic',
     };
   });
@@ -95,6 +102,9 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
     if (floorIds.size === 0) return floors.filter(f => f.enabled);
     return floors.filter(f => f.enabled && floorIds.has(f.id));
   }, [state.selectedWall, floors, roomFloors]);
+
+  // Frames are independent — any enabled frame can be applied to any door
+  const filteredFrames = useMemo(() => frames.filter(fr => fr.enabled), [frames]);
 
   // Auto-select category
   React.useEffect(() => {
@@ -160,6 +170,7 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
   const selectDoorColor = (id: string) => setState(s => ({ ...s, selectedDoorColor: id }));
   const selectWall = (id: string) => setState(s => ({ ...s, selectedWall: id }));
   const selectFloor = (id: string) => setState(s => ({ ...s, selectedFloor: id }));
+  const selectFrame = (id: string) => setState(s => ({ ...s, selectedFrame: id }));
   const setCollection = (c: DoorCollection) => setState(s => ({ ...s, activeCollection: c }));
 
   const getSelectedDoor = () => doors.find(d => d.id === state.selectedDoor);
@@ -167,17 +178,18 @@ export function ShowroomProvider({ children }: { children: ReactNode }) {
   const getSelectedWall = () => walls.find(w => w.id === state.selectedWall);
   const getSelectedFloor = () => floors.find(f => f.id === state.selectedFloor);
   const getSelectedCategory = () => categories.find(c => c.id === state.selectedCategory);
+  const getSelectedFrame = () => frames.find(fr => fr.id === state.selectedFrame);
 
   return (
     <ShowroomContext.Provider value={{
       state,
-      allDoors: doors, allColors: colors, allWalls: walls, allFloors: floors, allCategories: categories,
+      allDoors: doors, allColors: colors, allWalls: walls, allFloors: floors, allCategories: categories, allFrames: frames,
       roomDoors, roomFloors, doorModelColors, doorCategories,
-      filteredWalls, filteredDoors, filteredColors, filteredFloors,
+      filteredWalls, filteredDoors, filteredColors, filteredFloors, filteredFrames,
       walls,
       loading, refetch,
-      selectCategory, selectDoor, selectDoorColor, selectWall, selectFloor, setCollection,
-      getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor, getSelectedCategory,
+      selectCategory, selectDoor, selectDoorColor, selectWall, selectFloor, selectFrame, setCollection,
+      getSelectedDoor, getSelectedDoorColor, getSelectedWall, getSelectedFloor, getSelectedCategory, getSelectedFrame,
     }}>
       {children}
     </ShowroomContext.Provider>

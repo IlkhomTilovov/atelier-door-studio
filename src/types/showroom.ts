@@ -22,6 +22,14 @@ export interface DoorModel {
   image?: string | null;
 }
 
+export interface DoorFrame {
+  id: string;
+  name: string;
+  image?: string | null;
+  scale: number;
+  enabled: boolean;
+}
+
 export type DoorCollection = 'classic' | 'neo-classic' | 'luxury';
 
 export interface WallStyle {
@@ -54,6 +62,7 @@ export interface ShowroomState {
   selectedWall: string;
   selectedFloor: string;
   selectedCategory: string;
+  selectedFrame: string;
   activeCollection: DoorCollection;
 }
 

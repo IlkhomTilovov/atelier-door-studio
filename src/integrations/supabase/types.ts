@@ -170,6 +170,36 @@ export type Database = {
         }
         Relationships: []
       }
+      door_frames: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          image_url: string | null
+          name: string
+          scale: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          scale?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          scale?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
       floors: {
         Row: {
           color: string
