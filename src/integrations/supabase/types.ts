@@ -105,6 +105,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          offset_y: number
           scale: number
           sort_order: number
         }
@@ -114,6 +115,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          offset_y?: number
           scale?: number
           sort_order?: number
         }
@@ -123,6 +125,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          offset_y?: number
           scale?: number
           sort_order?: number
         }
